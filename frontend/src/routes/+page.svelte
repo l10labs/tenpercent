@@ -1,187 +1,114 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { onMount, onDestroy } from 'svelte';
+	import type { PageData } from './$types';
 
-	let gameState: any = null;
-	let playerId = crypto.randomUUID();
+	export let data: PageData;
+
 	let playerName = '';
-	let isJoined = false;
-	let selectedSquare: number | null = null;
+	let selectedSquare = 0;
+	let eventSource: EventSource;
 
-	async function fetchGameState() {
-		const response = await fetch('/api/game');
-		gameState = await response.json();
-	}
-
-	async function joinGame() {
-		if (!playerName) return;
-
-		await fetch('/api/game', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				action: 'join',
-				playerId,
-				playerName
-			})
-		});
-
-		isJoined = true;
-		await fetchGameState();
-	}
-
-	async function makeMove(squareIndex: number) {
-		if (!isJoined) return;
-
-		await fetch('/api/game', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				action: 'move',
-				playerId,
-				squareIndex
-			})
-		});
-
-		await fetchGameState();
-	}
-
-	let interval: NodeJS.Timer;
-
+	// Setup SSE for real-time updates
 	onMount(() => {
-		fetchGameState();
-		interval = setInterval(fetchGameState, 1000);
+		eventSource = new EventSource('/api/game-updates');
+		eventSource.onmessage = (event) => {
+			const newData = JSON.parse(event.data);
+			data.squares = newData.squares;
+		};
 	});
 
 	onDestroy(() => {
-		clearInterval(interval);
+		if (eventSource) {
+			eventSource.close();
+		}
 	});
-
-	$: currentPlayer = gameState?.players?.find((p) => p.id === playerId);
 </script>
 
-<main class="container">
-	{#if !isJoined}
-		<div class="join-form">
-			<h2>Join Game</h2>
-			<input type="text" bind:value={playerName} placeholder="Enter your name" />
-			<button on:click={joinGame}>Join</button>
-		</div>
-	{:else}
-		<div class="game-container">
-			<h2>Game Status: {gameState?.isActive ? 'Active' : 'Waiting for players'}</h2>
+<div class="game-container">
+	<div class="join-form">
+		<form method="POST" action="?/join" use:enhance>
+			<input
+				type="text"
+				name="playerName"
+				bind:value={playerName}
+				placeholder="Enter your name"
+				required
+			/>
+			<button type="submit">Join Game</button>
+		</form>
+	</div>
 
-			{#if currentPlayer}
-				<div class="player-info">
-					<p>Your points: {currentPlayer.points}</p>
-					<p>Moves left: {currentPlayer.movesLeft}</p>
-					<p>Moves made: {currentPlayer.movesMade}</p>
-				</div>
-			{/if}
-
-			<div class="squares-grid">
-				{#each gameState?.squares || [] as square, i}
-					<div
-						class="square"
-						class:active={currentPlayer?.currentSquare === i}
-						class:winner={gameState?.isFinished && gameState?.winningSquare !== i}
-						class:loser={gameState?.isFinished && gameState?.winningSquare === i}
-						on:click={() => makeMove(i)}
-					>
-						<h3>Square {i + 1}</h3>
-						<p>Total Points: {square.totalPoints}</p>
-						<p>Players: {square.players.length}</p>
-						<div class="players-list">
-							{#each square.players as playerId (playerId)}
-								<p>{gameState?.players?.find((p) => p.id === playerId)?.name || ''}</p>
-							{/each}
+	<div class="game-board">
+		{#each Array(4) as _, i}
+			<div class="square">
+				<h3>Square {i}</h3>
+				<div class="players">
+					{#each data.squares[i].players as player}
+						<div class="player">
+							{player.name} (${player.balance})
+							{#if player.name === playerName}
+								<form method="POST" action="?/move" use:enhance>
+									<input type="hidden" name="playerName" value={playerName} />
+									<select name="toSquare" bind:value={selectedSquare}>
+										{#each Array(4) as _, j}
+											<option value={j}>Square {j}</option>
+										{/each}
+									</select>
+									<button type="submit">Move</button>
+								</form>
+							{/if}
 						</div>
-					</div>
-				{/each}
-			</div>
-
-			{#if gameState?.isFinished}
-				<div class="game-over">
-					<h2>Game Over!</h2>
-					<p>Square {gameState.winningSquare + 1} lost!</p>
+					{/each}
 				</div>
-			{/if}
-		</div>
-	{/if}
-</main>
+				<p>Total Balance: ${data.squares[i].totalBalancePoints}</p>
+			</div>
+		{/each}
+	</div>
+
+	<div class="admin-controls">
+		<form method="POST" action="?/reset" use:enhance>
+			<button type="submit">Reset Game</button>
+		</form>
+	</div>
+</div>
 
 <style>
-	.container {
-		max-width: 800px;
-		margin: 0 auto;
+	.game-container {
 		padding: 20px;
 	}
 
 	.join-form {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		max-width: 300px;
-		margin: 0 auto;
+		margin-bottom: 20px;
 	}
 
-	.game-container {
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-	}
-
-	.squares-grid {
+	.game-board {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
 		gap: 20px;
 	}
 
 	.square {
-		padding: 20px;
-		border: 2px solid #ccc;
+		border: 2px solid #333;
+		padding: 15px;
 		border-radius: 8px;
-		cursor: pointer;
-		transition: all 0.3s ease;
 	}
 
-	.square:hover {
-		background-color: #f0f0f0;
-	}
-
-	.square.active {
-		border-color: #4caf50;
-		background-color: #e8f5e9;
-	}
-
-	.square.winner {
-		border-color: #4caf50;
-		background-color: #e8f5e9;
-	}
-
-	.square.loser {
-		border-color: #f44336;
-		background-color: #ffebee;
-	}
-
-	.player-info {
-		padding: 10px;
-		background-color: #f5f5f5;
+	.player {
+		margin: 5px 0;
+		padding: 5px;
+		background: #f0f0f0;
 		border-radius: 4px;
 	}
 
-	.game-over {
-		text-align: center;
-		padding: 20px;
-		background-color: #f5f5f5;
-		border-radius: 4px;
+	.admin-controls {
+		margin-top: 20px;
 	}
 
+	input,
+	select,
 	button {
-		padding: 10px;
-		cursor: pointer;
-	}
-
-	input {
-		padding: 8px;
+		margin: 5px;
+		padding: 5px;
 	}
 </style>
