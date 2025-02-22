@@ -14,6 +14,10 @@
     pnpm.install.enable = true;
   };
 
+  languages.rust = {
+    enable = true;
+  };
+
 
   # https://devenv.sh/processes/
   # processes.cargo-watch.exec = "cargo-watch";
