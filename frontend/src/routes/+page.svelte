@@ -12,8 +12,16 @@
 		totalBalancePoints: number;
 	}
 
+	interface GameResult {
+		type: 'BOMB';
+		losingSquares: number[];
+		isDraw: boolean;
+		totalBalances: number[];
+	}
+
 	interface GameData {
 		squares: Square[];
+		bombCounter: number;
 	}
 
 	export let data: GameData;
@@ -23,6 +31,7 @@
 	let isJoined = false;
 	let isLoading = false;
 	let errorMessage = '';
+	let gameResult: GameResult | null = null;
 
 	$: isJoined = data.squares.some((square) =>
 		square.players.some((player) => player.name === playerName)
@@ -47,6 +56,10 @@
 				const newData = JSON.parse(event.data);
 				if (newData.squares) {
 					data.squares = newData.squares;
+					data.bombCounter = newData.bombCounter;
+					if (newData.gameResult) {
+						gameResult = newData.gameResult;
+					}
 				}
 			} catch (error) {
 				console.error('Failed to parse game update:', error);
@@ -93,6 +106,7 @@
 				localStorage.setItem('playerName', trimmedName);
 			}
 			data.squares = result.squares;
+			data.bombCounter = result.bombCounter;
 		} catch (error) {
 			errorMessage = `Failed to join: ${error}`;
 			console.error('Join error:', error);
@@ -127,11 +141,12 @@
 				throw new Error(result.error || 'Failed to move');
 			}
 
-			if (!result.squares) {
-				throw new Error('Invalid server response');
-			}
-
 			data.squares = result.squares;
+			data.bombCounter = result.bombCounter;
+
+			if (result.gameResult) {
+				gameResult = result.gameResult;
+			}
 		} catch (error) {
 			errorMessage = `Failed to move: ${error}`;
 			console.error('Move error:', error);
@@ -157,12 +172,41 @@
 		playerName = '';
 		window.location.reload();
 	}
+
+	function getSquareStatus(index: number): string {
+		if (!gameResult) return '';
+		if (gameResult.losingSquares.includes(index)) {
+			return gameResult.isDraw ? 'draw' : 'loser';
+		}
+		return 'winner';
+	}
 </script>
 
 <div class="game-container">
 	{#if errorMessage}
 		<div class="error-message" role="alert">
 			{errorMessage}
+		</div>
+	{/if}
+
+	{#if gameResult}
+		<div class="game-result" role="alert">
+			{#if gameResult.isDraw}
+				<h2>Game Over - It's a Draw!</h2>
+				<p>Squares {gameResult.losingSquares.join(', ')} tied with highest points.</p>
+			{:else}
+				<h2>Game Over!</h2>
+				<p>
+					Square {gameResult.losingSquares[0]} lost with {gameResult.totalBalances[
+						gameResult.losingSquares[0]
+					]} points!
+				</p>
+			{/if}
+			<button on:click={() => window.location.reload()}>Play Again</button>
+		</div>
+	{:else}
+		<div class="bomb-counter" class:warning={data.bombCounter <= 2}>
+			<h2>Moves until Bomb: {data.bombCounter}</h2>
 		</div>
 	{/if}
 
@@ -195,11 +239,13 @@
 				type="button"
 				class="square"
 				class:current={currentSquare === i}
-				class:available={currentSquare !== i && isJoined}
-				on:click={() => !isLoading && isJoined && handleMove(i)}
-				disabled={!isJoined || currentSquare === i || isLoading}
+				class:available={currentSquare !== i && isJoined && !gameResult}
+				class:winner={getSquareStatus(i) === 'winner'}
+				class:loser={getSquareStatus(i) === 'loser'}
+				class:draw={getSquareStatus(i) === 'draw'}
+				on:click={() => !isLoading && isJoined && !gameResult && handleMove(i)}
+				disabled={!isJoined || currentSquare === i || isLoading || gameResult !== null}
 				aria-label={`Square ${i}${currentSquare === i ? ' (current position)' : ''}`}
-				aria-disabled={!isJoined || currentSquare === i || isLoading}
 			>
 				<h3>Square {i}</h3>
 				<div class="players">
@@ -214,12 +260,11 @@
 		{/each}
 	</div>
 
-	<div class="admin-controls">
-		<button on:click={handleLeaveGame} disabled={isLoading}> Leave Game </button>
-		{#if isJoined}
-			<button on:click={handleLeaveGame} disabled={isLoading}> Reset Game </button>
-		{/if}
-	</div>
+	{#if !gameResult}
+		<div class="admin-controls">
+			<button on:click={handleLeaveGame} disabled={isLoading}>Leave Game</button>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -236,6 +281,30 @@
 		border-radius: 4px;
 		margin-bottom: 20px;
 		text-align: center;
+	}
+
+	.bomb-counter {
+		text-align: center;
+		padding: 10px;
+		margin-bottom: 20px;
+		background: #e3f2fd;
+		border-radius: 4px;
+		transition: all 0.3s ease;
+	}
+
+	.bomb-counter.warning {
+		background: #fff3e0;
+		color: #e65100;
+		animation: pulse 1s infinite;
+	}
+
+	.game-result {
+		text-align: center;
+		padding: 20px;
+		margin-bottom: 20px;
+		background: #e8f5e9;
+		border-radius: 4px;
+		border: 2px solid #4caf50;
 	}
 
 	.join-form {
@@ -296,6 +365,21 @@
 		background-color: rgba(33, 150, 243, 0.1);
 	}
 
+	.square.winner {
+		border-color: #4caf50;
+		background-color: rgba(76, 175, 80, 0.1);
+	}
+
+	.square.loser {
+		border-color: #f44336;
+		background-color: rgba(244, 67, 54, 0.1);
+	}
+
+	.square.draw {
+		border-color: #ff9800;
+		background-color: rgba(255, 152, 0, 0.1);
+	}
+
 	.player {
 		margin: 5px 0;
 		padding: 8px;
@@ -345,5 +429,17 @@
 	p {
 		color: black;
 		margin: 0;
+	}
+
+	@keyframes pulse {
+		0% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.05);
+		}
+		100% {
+			transform: scale(1);
+		}
 	}
 </style>

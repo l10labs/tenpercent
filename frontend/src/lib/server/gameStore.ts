@@ -1,7 +1,5 @@
-// src/lib/server/gameStore.ts
 import { Game } from './gameState';
 
-// Singleton instance
 class GameManager {
 	private static instance: GameManager;
 	private game: Game;
@@ -26,5 +24,4 @@ class GameManager {
 	}
 }
 
-// Export a single instance
 export const gameManager = GameManager.getInstance();

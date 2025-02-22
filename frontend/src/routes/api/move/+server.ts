@@ -11,19 +11,15 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const game = gameManager.getGame();
-		game.moveToSquare(playerName, toSquare);
+		const gameResult = game.moveToSquare(playerName, toSquare);
+		const gameState = game.getGameState();
 
-		// Return updated game state
-		const squares = [];
-		for (let i = 0; i < 4; i++) {
-			const square = game.getSquare(i);
-			squares.push({
-				players: Array.from(square.players),
-				totalBalancePoints: square.totalBalancePoints
-			});
-		}
-
-		return json({ success: true, squares });
+		return json({
+			success: true,
+			squares: gameState.squares,
+			bombCounter: gameState.bombCounter,
+			gameResult
+		});
 	} catch (e) {
 		return json({ error: (e as Error).message }, { status: 400 });
 	}

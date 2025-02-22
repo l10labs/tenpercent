@@ -2,16 +2,10 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { gameManager } from '$lib/server/gameStore';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async () => {
 	try {
-		const { playerName } = await request.json();
-
-		if (typeof playerName !== 'string') {
-			return json({ error: 'Invalid player name' }, { status: 400 });
-		}
-
 		const game = gameManager.getGame();
-		game.joinGame(playerName);
+		game.resetGame();
 
 		const gameState = game.getGameState();
 		return json({
