@@ -1312,8 +1312,8 @@
   },
   "contracts": [
     {
-      "address": "0x62f6a8b1bc8f4b45985eaff3b00f85f370d6eb8dcb038072f3bf34fba0dd855",
-      "class_hash": "0x7e929027a6456c78b98bd4b54a4ab5db0058fae29e5c3a35d87aae49655236",
+      "address": "0x676f09df40a5f868808be5432055a408c413a03a77af6b921dbcc68fa7e042e",
+      "class_hash": "0x39ebc3d65e36dc5bc87fac984af0da33f12153681057a842931a705c74f60d9",
       "abi": [
         {
           "type": "impl",
@@ -1371,47 +1371,13 @@
           "interface_name": "dojo_starter::systems::actions::IActions"
         },
         {
-          "type": "enum",
-          "name": "dojo_starter::models::Direction",
-          "variants": [
-            {
-              "name": "Left",
-              "type": "()"
-            },
-            {
-              "name": "Right",
-              "type": "()"
-            },
-            {
-              "name": "Up",
-              "type": "()"
-            },
-            {
-              "name": "Down",
-              "type": "()"
-            }
-          ]
-        },
-        {
           "type": "interface",
           "name": "dojo_starter::systems::actions::IActions",
           "items": [
             {
               "type": "function",
-              "name": "spawn",
+              "name": "increment",
               "inputs": [],
-              "outputs": [],
-              "state_mutability": "external"
-            },
-            {
-              "type": "function",
-              "name": "move",
-              "inputs": [
-                {
-                  "name": "direction",
-                  "type": "dojo_starter::models::Direction"
-                }
-              ],
               "outputs": [],
               "state_mutability": "external"
             }
@@ -1536,8 +1502,7 @@
       "tag": "dojo_starter-actions",
       "selector": "0x7a1c71029f2d0b38e3ac89b09931d08b6e48417e079c289ff19a8698d0cba33",
       "systems": [
-        "spawn",
-        "move",
+        "increment",
         "upgrade"
       ]
     }
@@ -1546,29 +1511,17 @@
   "models": [
     {
       "members": [],
-      "class_hash": "0x5dee089cbc4c8e6b4dbb08ee91ca9e275c5f5bb0be158ebae60ecd3b06989dd",
-      "tag": "dojo_starter-DirectionsAvailable",
-      "selector": "0x77844f1facb51e60e546a9832d56c6bd04fa23be4fd5b57290caae5e9a3c1e4"
-    },
-    {
-      "members": [],
-      "class_hash": "0x1a3faf9f018c2d792f06a9b52bd0b01b78bd652cb2dafbb3869f12814f0825b",
-      "tag": "dojo_starter-Moves",
-      "selector": "0x2a29373f1af8348bd366a990eb3a342ef2cbe5e85160539eaca3441a673f468"
-    },
-    {
-      "members": [],
-      "class_hash": "0x6dd8181e9e5a571c80803ab2adde6141f030decdef460106d757aa083f26a70",
-      "tag": "dojo_starter-Position",
-      "selector": "0x2ac8b4c190f7031b9fc44312e6b047a1dce0b3f2957c33a935ca7846a46dd5b"
+      "class_hash": "0x4b57e625d7a82b51a165d2d3437f90d88290f9dbe34619e431d63f1e4c26469",
+      "tag": "dojo_starter-Counter",
+      "selector": "0x5c36ccd6a852f08c27bb21b6a8b4ec9fa8b520cb8a961cb32fff0944f7a3ceb"
     }
   ],
   "events": [
     {
       "members": [],
-      "class_hash": "0xe7390da745519ad5484c14f6c32caef28e53ed496e78c086a0689bb2007112",
-      "tag": "dojo_starter-Moved",
-      "selector": "0x504403e5c02b6442527721fc464d9ea5fc8f1ee600ab5ccd5c0845d36fd45f1"
+      "class_hash": "0x769a55f3f22c5f16e74fe46256cab9f96a623aa1a2c01fd038e212bcdd14518",
+      "tag": "dojo_starter-Incremented",
+      "selector": "0x44fc80fa51b3d8d8d057ba751055a57a8d2a296cbf1de0eeba0d3c48af6dddc"
     }
   ],
   "external_contracts": []
