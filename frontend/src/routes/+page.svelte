@@ -2,6 +2,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { Player, Square, GameResult, GameResponse, SerializableSquare } from '$lib/types';
+	import { tweened } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
 
 	// Initialize data with default values
 	let data: GameResponse = {
@@ -16,6 +18,22 @@
 	let isLoading = false;
 	let errorMessage = '';
 	let gameResult: GameResult | null = null;
+	let previousBalance = 0;
+	let balanceChangeClass = '';
+
+	// Track balance changes
+	$: currentBalance = getPlayers(data?.squares?.[currentSquare])
+		?.find(p => p.name === playerName)?.balance ?? 0;
+
+	$: if (currentBalance !== previousBalance && previousBalance !== 0) {
+		balanceChangeClass = currentBalance > previousBalance ? 'balance-increase' : 'balance-decrease';
+		setTimeout(() => {
+			balanceChangeClass = '';
+		}, 1000);
+		previousBalance = currentBalance;
+	} else if (previousBalance === 0) {
+		previousBalance = currentBalance;
+	}
 
 	function getPlayers(square: SerializableSquare | undefined): Player[] {
 		if (!square) return [];
@@ -151,7 +169,7 @@
 
 <main class="container mx-auto px-4 py-8 max-w-4xl">
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold mb-4">Bomb Game</h1>
+		<h1 class="text-3xl font-bold mb-4">Ten Percent</h1>
 		
 		{#if !isJoined}
 			<form on:submit={handleJoin} class="flex gap-2">
@@ -166,19 +184,21 @@
 				</button>
 			</form>
 		{:else}
-			<div class="flex gap-2">
-				<span class="py-2">Playing as: <strong>{playerName}</strong></span>
+			<div class="flex flex-col items-center mb-8">
+				<div class="text-lg mb-2">Playing as: <strong>{playerName}</strong></div>
+				{#if data?.squares}
+					<div class="text-4xl font-bold text-black {balanceChangeClass}">
+						${(getPlayers(data.squares[currentSquare])
+							.find(p => p.name === playerName)?.balance ?? 0).toFixed(2)}
+					</div>
+				{/if}
+			</div>
+			<div class="flex justify-end">
 				<button 
 					on:click={handleLeave}
 					class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
 				>
 					Leave Game
-				</button>
-				<button 
-					on:click={handleReset}
-					class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-				>
-					Reset Game
 				</button>
 			</div>
 		{/if}
@@ -190,8 +210,10 @@
 		</div>
 	{/if}
 
-	<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-		Bomb explodes in: <strong>{data?.bombCounter}</strong> moves
+	<div class="flex justify-between items-center mb-4">
+		<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded flex-grow">
+			<span class="text-lg">Bomb explodes in: <strong>{data?.bombCounter}</strong> moves</span>
+		</div>
 	</div>
 
 	<div class="grid grid-cols-2 gap-4">
@@ -211,14 +233,14 @@
 							<span class={player.name === playerName ? 'font-bold' : ''}>
 								{player.name}
 							</span>
-							<span class="text-gray-600">
-								Balance: {player.balance.toFixed(2)}
+							<span class="text-black">
+								${player.balance.toFixed(2)}
 							</span>
 						</div>
 					{/each}
 				</div>
 				<div class="mt-2 text-sm text-gray-500">
-					Total Points: {data?.squares?.[i]?.totalBalancePoints ?? 0}
+					Total: ${(data?.squares?.[i]?.totalBalancePoints ?? 0).toFixed(2)}
 				</div>
 			</button>
 		{/each}
@@ -229,7 +251,7 @@
 			<h3 class="font-semibold">Previous Round Result:</h3>
 			<p>
 				Squares {data.previousRoundResult.losingSquares.map(i => i + 1).join(', ')} lost points.
-				Total penalty: {data.previousRoundResult.penaltyAmount} points
+				Total penalty: ${data.previousRoundResult.penaltyAmount.toFixed(2)}
 				{#if data.previousRoundResult.isDraw}
 					(Draw)
 				{/if}
@@ -238,13 +260,13 @@
 				<div class="text-red-600">
 					Penalties:
 					{#each data.previousRoundResult.affectedPlayers.losing as player}
-						<div>{player.name}: -{player.penalty.toFixed(2)} points</div>
+						<div>{player.name}: -${player.penalty.toFixed(2)}</div>
 					{/each}
 				</div>
 				<div class="text-green-600 mt-1">
 					Rewards:
 					{#each data.previousRoundResult.affectedPlayers.safe as player}
-						<div>{player.name}: +{player.reward.toFixed(2)} points</div>
+						<div>{player.name}: +${player.reward.toFixed(2)}</div>
 					{/each}
 				</div>
 			</div>
@@ -255,5 +277,37 @@
 <style>
 	:global(body) {
 		background-color: #f9fafb;
+	}
+
+	.balance-increase {
+		animation: flash-green 1s;
+	}
+
+	.balance-decrease {
+		animation: flash-red 1s;
+	}
+
+	@keyframes flash-green {
+		0% {
+			color: black;
+		}
+		50% {
+			color: #10B981;  /* text-green-500 */
+		}
+		100% {
+			color: black;
+		}
+	}
+
+	@keyframes flash-red {
+		0% {
+			color: black;
+		}
+		50% {
+			color: #EF4444;  /* text-red-500 */
+		}
+		100% {
+			color: black;
+		}
 	}
 </style>
