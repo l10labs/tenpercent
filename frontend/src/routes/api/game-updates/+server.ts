@@ -8,15 +8,9 @@ export const GET: RequestHandler = async ({ setHeaders }) => {
 		Connection: 'keep-alive'
 	});
 
-	const game = gameManager.getGame();
-	const gameState = game.getGameState();
+	const gameState = gameManager.getGameState();
 
-	const data = JSON.stringify({
-		squares: gameState.squares,
-		bombCounter: gameState.bombCounter
-	});
-
-	return new Response(`data: ${data}\n\n`, {
+	return new Response(`data: ${JSON.stringify(gameState)}\n\n`, {
 		headers: {
 			'Content-Type': 'text/event-stream',
 			'Cache-Control': 'no-cache',

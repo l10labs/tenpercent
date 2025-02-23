@@ -1,24 +1,22 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { GameResponse } from '$lib/types';
-import { gameManager, handleGameError } from '$lib/server/gameStore';
+import { gameManager } from '$lib/server/gameStore';
 
-export const POST: RequestHandler = async () => {
+export const GET: RequestHandler = async () => {
 	try {
-		gameManager.resetGame();
 		return json({
 			success: true,
 			...gameManager.getGameState()
 		});
 	} catch (e) {
-		const error = handleGameError(e as Error);
 		return json(
 			{
 				success: false,
-				error: error.message,
+				error: 'Failed to get game status',
 				...gameManager.getGameState()
 			},
-			{ status: 400 }
+			{ status: 500 }
 		);
 	}
 };
