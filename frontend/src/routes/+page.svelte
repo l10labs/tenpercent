@@ -212,7 +212,7 @@
 								{player.name}
 							</span>
 							<span class="text-gray-600">
-								Balance: {player.balance}
+								Balance: {player.balance.toFixed(2)}
 							</span>
 						</div>
 					{/each}
@@ -228,11 +228,26 @@
 		<div class="mt-4 p-4 bg-gray-100 rounded">
 			<h3 class="font-semibold">Previous Round Result:</h3>
 			<p>
-				Squares {data.previousRoundResult.losingSquares.map(i => i + 1).join(', ')} lost points
+				Squares {data.previousRoundResult.losingSquares.map(i => i + 1).join(', ')} lost points.
+				Total penalty: {data.previousRoundResult.penaltyAmount} points
 				{#if data.previousRoundResult.isDraw}
 					(Draw)
 				{/if}
 			</p>
+			<div class="mt-2">
+				<div class="text-red-600">
+					Penalties:
+					{#each data.previousRoundResult.affectedPlayers.losing as player}
+						<div>{player.name}: -{player.penalty.toFixed(2)} points</div>
+					{/each}
+				</div>
+				<div class="text-green-600 mt-1">
+					Rewards:
+					{#each data.previousRoundResult.affectedPlayers.safe as player}
+						<div>{player.name}: +{player.reward.toFixed(2)} points</div>
+					{/each}
+				</div>
+			</div>
 		</div>
 	{/if}
 </main>

@@ -23,6 +23,11 @@ export interface GameResult {
 	isDraw: boolean;
 	totalBalances: number[];
 	roundNumber: number;
+	penaltyAmount: number;
+	affectedPlayers: {
+		losing: Array<{ name: string; penalty: number }>;
+		safe: Array<{ name: string; reward: number }>;
+	};
 }
 
 // Server-side game state

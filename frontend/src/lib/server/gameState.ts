@@ -45,14 +45,16 @@ export class Game {
 	}
 
 	private startNewRound(): void {
+		// Reset bomb counter for new round
 		this.bombCounter = 5;
 		this.roundNumber++;
 
-		// Update the total balance points for each square
-		for (const square of this.squares) {
+		// No need to update totalBalancePoints here since it's already done in checkForBombResult
+		// We only need to update if players move between rounds
+		this.squares.forEach(square => {
 			square.totalBalancePoints = Array.from(square.players)
 				.reduce((total, player) => total + player.balance, 0);
-		}
+		});
 	}
 
 	private checkForBombResult(): GameResult | null {
@@ -64,16 +66,68 @@ export class Game {
 				.map((balance, index) => (balance === maxBalance ? index : -1))
 				.filter((index) => index !== -1);
 
+			// Get all players in losing squares
+			const losingPlayers: Player[] = [];
+			const safePlayers: Player[] = [];
+			let totalPenalty = 0;
+			let totalSafeBalance = 0;
+
+			// Separate losing and safe players, calculate penalties
+			this.squares.forEach((square, index) => {
+				const players = Array.from(square.players);
+				if (losingSquares.includes(index)) {
+					losingPlayers.push(...players);
+				} else {
+					safePlayers.push(...players);
+					totalSafeBalance += players.reduce((sum, p) => sum + p.balance, 0);
+				}
+			});
+
+			// Apply 10% penalty to losing players and calculate total penalty
+			losingPlayers.forEach(player => {
+				const penalty = player.balance * 0.1; // 10% penalty, keep decimals
+				player.balance -= penalty;
+				totalPenalty += penalty;
+			});
+
+			// Distribute penalties to safe players proportionally
+			if (totalPenalty > 0 && totalSafeBalance > 0) {
+				safePlayers.forEach(player => {
+					const proportion = player.balance / totalSafeBalance;
+					const reward = totalPenalty * proportion;
+					player.balance += reward;
+				});
+			}
+
+			// Update square balances after redistribution
+			this.squares.forEach(square => {
+				square.totalBalancePoints = Array.from(square.players)
+					.reduce((total, player) => total + player.balance, 0);
+			});
+
 			const result: GameResult = {
 				type: 'BOMB',
 				losingSquares,
 				isDraw: losingSquares.length > 1,
 				totalBalances: balances,
-				roundNumber: this.roundNumber
+				roundNumber: this.roundNumber,
+				penaltyAmount: totalPenalty,
+				affectedPlayers: {
+					losing: losingPlayers.map(p => ({ 
+						name: p.name, 
+						penalty: p.balance * 0.1 // Keep exact penalty amount
+					})),
+					safe: safePlayers.map(p => ({ 
+						name: p.name, 
+						reward: totalPenalty * (p.balance / totalSafeBalance) // Keep exact reward amount
+					}))
+				}
 			};
 
 			// Store current result before starting new round
 			this.previousRoundResult = result;
+			
+			// Start new round - this will reset the bomb counter and increment round number
 			this.startNewRound();
 
 			return result;
