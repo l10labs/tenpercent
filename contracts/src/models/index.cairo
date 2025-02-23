@@ -1,12 +1,5 @@
 use starknet::ContractAddress;
 
-#[derive(Serde, Copy, Drop, Introspect, PartialEq)]
-pub enum PitStatus {
-    Active,
-    Completed,
-    Abandoned,
-}
-
 #[derive(Copy, Drop, Serde)]
 #[dojo::model]
 pub struct Pit {
@@ -18,15 +11,22 @@ pub struct Pit {
     pub status: PitStatus,
 }
 
+#[derive(Serde, Copy, Drop, Introspect, PartialEq)]
+pub enum PitStatus {
+    Active,
+    Completed,
+    Abandoned,
+}
+
 #[derive(Copy, Drop, Serde)]
 #[dojo::model]
 pub struct Player {
     #[key]
     pub pit_id: u32,
     #[key]
-    pub player: ContractAddress,
-    pub balance: u128,
+    pub player_id: ContractAddress,
     pub square_id: u8,
+    pub balance: u128,
 }
 
 #[derive(Copy, Drop, Serde)]

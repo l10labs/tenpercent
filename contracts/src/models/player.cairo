@@ -1,4 +1,5 @@
 pub use crate::models::index::Player;
+use crate::constants::{INITIAL_BALANCE, PENALTY_PERCENTAGE};
 use starknet::ContractAddress;
 
 pub mod errors {
@@ -9,18 +10,18 @@ pub mod errors {
 #[generate_trait]
 pub impl PlayerImpl of PlayerTrait {
     #[inline]
-    fn new(pit_id: u32, player: ContractAddress) -> Player {
+    fn new(pit_id: u32, player_id: ContractAddress) -> Player {
         Player {
             pit_id,
-            player,
-            balance: crate::constants::INITIAL_BALANCE,
+            player_id,
             square_id: 0,
+            balance: INITIAL_BALANCE,
         }
     }
 
     #[inline]
     fn apply_penalty(ref self: Player) -> u128 {
-        let penalty = (self.balance * crate::constants::PENALTY_PERCENTAGE) / 100;
+        let penalty = (self.balance * PENALTY_PERCENTAGE) / 100;
         self.balance -= penalty;
         penalty
     }
