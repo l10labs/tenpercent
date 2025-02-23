@@ -7,6 +7,7 @@ pub mod models {
     pub mod player;
     pub mod square;
     pub mod round_result;
+    pub mod pit_order;
 }
 
 pub mod components {

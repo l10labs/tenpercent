@@ -47,5 +47,13 @@ pub struct RoundResult {
     #[key]
     pub round: u32,
     pub losing_square: u8,
-    pub penalty_amount: u128,
+    pub round_reward: u128,
+}
+
+#[derive(Copy, Drop, Serde)]
+#[dojo::model]
+pub struct PitOrder {
+    #[key]
+    pub pit_id: u32,
+    pub next_square: u8,
 } 

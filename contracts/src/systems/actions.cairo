@@ -1,9 +1,8 @@
 // define the interface
 #[starknet::interface]
 trait IActions<TState> {
-    fn create_game(ref self: TState);
     fn join_game(ref self: TState, pit_id: u32);
-    // fn move_to_square(ref self: TState, pit_id: u32, square_id: u8);
+    fn move_to_square(ref self: TState, pit_id: u32, square_id: u8);
 }
 
 // dojo decorator
@@ -31,22 +30,25 @@ pub mod actions {
         BombGameEvent: BombGameComponent::Event,
     }
 
+    fn dojo_init(ref self: ContractState) {
+        let world = self.world_storage();
+        self.bomb_game.create_pit(world);
+    }
+
+
     #[abi(embed_v0)]
     impl ActionsImpl of IActions<ContractState> {
-        fn create_game(ref self: ContractState) {
-            let world = self.world_storage();
-            self.bomb_game.create_game(world);
-        }
-
         fn join_game(ref self: ContractState, pit_id: u32) {
             let world = self.world_storage();
             self.bomb_game.join_game(world, pit_id);
         }
 
-        // fn move_to_square(ref self: ContractState, pit_id: u32, square_id: u8) {
-        //     let world = self.world_storage();
-        //     self.bomb_game.move_to_square(world, pit_id, square_id);
-        // }
+        fn move_to_square(ref self: ContractState, pit_id: u32, square_id: u8) {
+            let world = self.world_storage();
+            self.bomb_game.move_to_square(world, pit_id, square_id);
+            self.bomb_game.progress_round(world, pit_id);
+        }
+
     }
 
     #[generate_trait]

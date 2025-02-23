@@ -31,9 +31,9 @@ pub impl SquareImpl of SquareTrait {
 }
 
 #[generate_trait]
-impl SquareAssert of AssertTrait {
+pub impl SquareAssert of AssertTrait {
     #[inline]
-    fn assert_valid_square_id(square_id: u8) {
-        assert(square_id < NUM_SQUARES, errors::INVALID_SQUARE_ID);
+    fn assert_valid_square_id(self: Square) {
+        assert(self.square_id < NUM_SQUARES, errors::INVALID_SQUARE_ID);
     }
 } 

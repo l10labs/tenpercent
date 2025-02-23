@@ -1312,8 +1312,8 @@
   },
   "contracts": [
     {
-      "address": "0x5e5c82ade17b8c33e22cc2104608174e4c6e74460ba34410c23255ed0c4116",
-      "class_hash": "0x7e3f835d4d81155564e0383aed70094087d25adc615f5707d5862625df7d22",
+      "address": "0x2959fddf1ccd15c8d19a03d927a6112094b8541357e8aa89f0b1d91b6961514",
+      "class_hash": "0x1869c982989ef66305a7de9d5b6e1c2a5f7fd8791f0859259e92163ef73f5af",
       "abi": [
         {
           "type": "impl",
@@ -1366,6 +1366,13 @@
           ]
         },
         {
+          "type": "function",
+          "name": "dojo_init",
+          "inputs": [],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
           "type": "impl",
           "name": "ActionsImpl",
           "interface_name": "dojo_starter::systems::actions::IActions"
@@ -1374,13 +1381,6 @@
           "type": "interface",
           "name": "dojo_starter::systems::actions::IActions",
           "items": [
-            {
-              "type": "function",
-              "name": "create_game",
-              "inputs": [],
-              "outputs": [],
-              "state_mutability": "external"
-            },
             {
               "type": "function",
               "name": "join_game",
@@ -1392,15 +1392,24 @@
               ],
               "outputs": [],
               "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "move_to_square",
+              "inputs": [
+                {
+                  "name": "pit_id",
+                  "type": "core::integer::u32"
+                },
+                {
+                  "name": "square_id",
+                  "type": "core::integer::u8"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
             }
           ]
-        },
-        {
-          "type": "function",
-          "name": "dojo_init",
-          "inputs": [],
-          "outputs": [],
-          "state_mutability": "view"
         },
         {
           "type": "impl",
@@ -1494,7 +1503,7 @@
         },
         {
           "type": "event",
-          "name": "dojo_starter::components::bomb_game::BombGameComponent::GameCreated",
+          "name": "dojo_starter::components::bomb_game::BombGameComponent::PitCreated",
           "kind": "struct",
           "members": [
             {
@@ -1522,6 +1531,11 @@
             {
               "name": "player",
               "type": "core::starknet::contract_address::ContractAddress",
+              "kind": "data"
+            },
+            {
+              "name": "square_id",
+              "type": "core::integer::u8",
               "kind": "data"
             }
           ]
@@ -1574,7 +1588,7 @@
               "kind": "data"
             },
             {
-              "name": "penalty_amount",
+              "name": "round_reward",
               "type": "core::integer::u128",
               "kind": "data"
             }
@@ -1586,8 +1600,8 @@
           "kind": "enum",
           "variants": [
             {
-              "name": "GameCreated",
-              "type": "dojo_starter::components::bomb_game::BombGameComponent::GameCreated",
+              "name": "PitCreated",
+              "type": "dojo_starter::components::bomb_game::BombGameComponent::PitCreated",
               "kind": "nested"
             },
             {
@@ -1634,8 +1648,9 @@
       "tag": "dojo_starter-actions",
       "selector": "0x7a1c71029f2d0b38e3ac89b09931d08b6e48417e079c289ff19a8698d0cba33",
       "systems": [
-        "create_game",
+        "dojo_init",
         "join_game",
+        "move_to_square",
         "upgrade"
       ]
     }
@@ -1650,13 +1665,19 @@
     },
     {
       "members": [],
-      "class_hash": "0x659082b88cf654aa1b3c5c7c56eec6ac972e88e513076d690c6fba2fd80d354",
+      "class_hash": "0x79554949dbfd32cff715de367746abe6d402d7d4af217409295d6833ec30875",
+      "tag": "dojo_starter-PitOrder",
+      "selector": "0x63f4ab127e5b6b5321265609adf689257d4a3edfdc9695786346ea499f10c86"
+    },
+    {
+      "members": [],
+      "class_hash": "0x6190ba9cbe1f93931c56fe8974a05bff92c2f65c41ecebee5d7071bdca75ee0",
       "tag": "dojo_starter-Player",
       "selector": "0x1cccb05d982525914bcdce99f0af51556dcb8d9f0e2317c0ad0221d13a809f9"
     },
     {
       "members": [],
-      "class_hash": "0x70377c3282b60b3e4cf14803beb564c9611aa26c24ab5abe1ff71a731123edb",
+      "class_hash": "0x7200426211a1ba5300848ee55994e652a42b2828232360f8877850f55b20e52",
       "tag": "dojo_starter-RoundResult",
       "selector": "0x1a15edba4f1a7c95d8797632aaf75dd5cf93a94fcda2ba8b3fef9214d65b4e0"
     },
