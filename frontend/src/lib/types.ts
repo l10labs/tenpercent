@@ -30,6 +30,7 @@ export interface GameState {
 	squares: Square[];
 	bombCounter: number;
 	roundNumber: number;
+	previousRoundResult: GameResult | null;
 }
 
 // Serializable game state for API responses
@@ -37,6 +38,7 @@ export interface SerializableGameState {
 	squares: SerializableSquare[];
 	bombCounter: number;
 	roundNumber: number;
+	previousRoundResult: GameResult | null;
 }
 
 // API response format

@@ -5,6 +5,7 @@ export class Game {
 	private lobby: Set<Player> = new Set();
 	private bombCounter: number = 5;
 	private roundNumber: number = 1;
+	private previousRoundResult: GameResult | null = null;
 
 	constructor() {
 		this.initializeSquares();
@@ -47,24 +48,18 @@ export class Game {
 		this.bombCounter = 5;
 		this.roundNumber++;
 
-		// Keep players in the lobby but reset their positions to square 0
-		const players = Array.from(this.lobby);
-		this.initializeSquares();
-
-		// Place all players back in square 0
-		for (const player of players) {
-			this.squares[0].players.add(player);
-			this.squares[0].totalBalancePoints += player.balance;
+		// Update the total balance points for each square
+		for (const square of this.squares) {
+			square.totalBalancePoints = Array.from(square.players)
+				.reduce((total, player) => total + player.balance, 0);
 		}
 	}
 
 	private checkForBombResult(): GameResult | null {
 		if (this.bombCounter === 0) {
-			// Find highest balance
 			const balances = this.squares.map((square) => square.totalBalancePoints);
 			const maxBalance = Math.max(...balances);
 
-			// Find all squares with the highest balance
 			const losingSquares = balances
 				.map((balance, index) => (balance === maxBalance ? index : -1))
 				.filter((index) => index !== -1);
@@ -77,7 +72,8 @@ export class Game {
 				roundNumber: this.roundNumber
 			};
 
-			// Start new round automatically
+			// Store current result before starting new round
+			this.previousRoundResult = result;
 			this.startNewRound();
 
 			return result;
@@ -170,10 +166,15 @@ export class Game {
 		return -1;
 	}
 
+	getPreviousRoundResult(): GameResult | null {
+		return this.previousRoundResult;
+	}
+
 	resetGame(): void {
 		this.bombCounter = 5;
 		this.roundNumber = 1;
 		this.lobby = new Set();
+		this.previousRoundResult = null; // Reset previous round result
 		this.initializeSquares();
 	}
 
@@ -181,7 +182,8 @@ export class Game {
 		return {
 			squares: this.squares,
 			bombCounter: this.bombCounter,
-			roundNumber: this.roundNumber
+			roundNumber: this.roundNumber,
+			previousRoundResult: this.previousRoundResult // Include in game state
 		};
 	}
 
@@ -192,7 +194,8 @@ export class Game {
 				totalBalancePoints: square.totalBalancePoints
 			})),
 			bombCounter: this.bombCounter,
-			roundNumber: this.roundNumber
+			roundNumber: this.roundNumber,
+			previousRoundResult: this.previousRoundResult // Include in serializable state
 		};
 	}
 }
