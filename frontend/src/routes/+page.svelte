@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { Player, Square, GameResult, GameResponse, SerializableSquare } from '$lib/types';
+	import { INITIAL_BALANCE } from '$lib/types';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 
@@ -268,9 +269,10 @@
 				/>
 				<button 
 					type="submit" 
-					class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors shadow-sm"
+					class="w-full bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition-colors shadow-sm flex items-center justify-center gap-2"
 				>
-					Join Game
+					<span>Join Game</span>
+					<span class="text-xl">💰</span>
 				</button>
 			</form>
 		{:else}
@@ -280,6 +282,15 @@
 						${(getPlayers(data.squares[currentSquare])
 							.find(p => p.name === playerName)?.balance ?? 0).toFixed(2)}
 					</div>
+					{#if currentSquare !== -1}
+						{#if data.squares[currentSquare]?.totalBalancePoints > 0}
+							{@const player = getPlayers(data.squares[currentSquare]).find(p => p.name === playerName)}
+							{@const profitPercent = ((player?.balance ?? 0) - INITIAL_BALANCE) / INITIAL_BALANCE * 100}
+							<div class="text-sm mt-1 {profitPercent >= 0 ? 'text-green-500' : 'text-red-500'}">
+								{profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%
+							</div>
+						{/if}
+					{/if}
 				{/if}
 			</div>
 		{/if}
