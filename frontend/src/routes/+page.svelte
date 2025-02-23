@@ -6,6 +6,7 @@
 	import { cubicOut } from 'svelte/easing';
 
 	// Initialize data with default values
+	let highestBalanceSquare = 0;
 	let data: GameResponse = {
 		squares: [],
 		bombCounter: 5,
@@ -33,6 +34,15 @@
 		previousBalance = currentBalance;
 	} else if (previousBalance === 0) {
 		previousBalance = currentBalance;
+	}
+
+	// Track which square has the highest balance
+	$: {
+		if (data?.squares) {
+			const balances = data.squares.map(square => square.totalBalancePoints);
+			const maxBalance = Math.max(...balances);
+			highestBalanceSquare = balances.findIndex(balance => balance === maxBalance);
+		}
 	}
 
 	function getPlayers(square: SerializableSquare | undefined): Player[] {
@@ -211,8 +221,18 @@
 	{/if}
 
 	<div class="flex justify-between items-center mb-4">
-		<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded flex-grow">
-			<span class="text-lg">Bomb explodes in: <strong>{data?.bombCounter}</strong> moves</span>
+		<div class="w-full">
+			<div class="flex justify-between text-sm mb-1">
+				<span>Bomb explodes in: <strong>{data?.bombCounter}</strong> moves</span>
+				<span>{Math.round((data?.bombCounter / 5) * 100)}%</span>
+			</div>
+			<div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+				<div
+					class="h-full transition-all duration-500 ease-in-out rounded-full"
+					style="width: {(data?.bombCounter / 5) * 100}%; 
+						background-color: rgb({255 - ((data?.bombCounter / 5) * 255)}, {((data?.bombCounter / 5) * 255)}, 0)"
+				/>
+			</div>
 		</div>
 	</div>
 
@@ -222,10 +242,16 @@
 				class="p-6 border rounded-lg text-left transition-colors duration-200
 					{currentSquare === i ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'}
 					{gameResult?.losingSquares?.includes(i) ? 'bg-red-100 border-red-200' : ''}
-					{isJoined && currentSquare !== i && !isLoading ? 'cursor-pointer' : 'cursor-not-allowed'}"
+					{isJoined && currentSquare !== i && !isLoading ? 'cursor-pointer' : 'cursor-not-allowed'}
+					relative"
 				on:click={() => handleMove(i)}
 				disabled={!isJoined || currentSquare === i || isLoading}
 			>
+				{#if highestBalanceSquare === i}
+					<div class="absolute top-2 right-2 bomb-icon">
+						<span class="text-2xl">💣</span>
+					</div>
+				{/if}
 				<h3 class="text-lg font-semibold mb-2">Square {i + 1}</h3>
 				<div class="space-y-1">
 					{#each getPlayers(data?.squares?.[i]) as player}
@@ -285,6 +311,20 @@
 
 	.balance-decrease {
 		animation: flash-red 1s;
+	}
+
+	.bomb-icon {
+		animation: bounce 1s infinite;
+		transition: transform 0.3s ease-in-out;
+	}
+
+	@keyframes bounce {
+		0%, 100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-4px);
+		}
 	}
 
 	@keyframes flash-green {
