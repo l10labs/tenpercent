@@ -1,48 +1,58 @@
-
 // define the interface
 #[starknet::interface]
-trait IActions<T> {
-    fn increment(ref self: T);
+trait IActions<TState> {
+    fn create_game(ref self: TState);
+    fn join_game(ref self: TState, pit_id: u32);
+    // fn move_to_square(ref self: TState, pit_id: u32, square_id: u8);
 }
 
 // dojo decorator
 #[dojo::contract]
 pub mod actions {
-    use super::{IActions};
+    use dojo::world::WorldStorage;
 
-    use dojo::model::ModelStorage;
-    use dojo::event::EventStorage;
+    use crate::components::bomb_game::BombGameComponent;
+    use crate::constants::DEFAULT_NS;
+    use super::IActions;
 
-    use crate::models::counter::Counter;
+    component!(path: BombGameComponent, storage: bomb_game, event: BombGameEvent);
+    impl BombGameInternalImpl = BombGameComponent::InternalImpl<ContractState>;
 
-    #[derive(Copy, Drop, Serde)]
-    #[dojo::event]
-    pub struct Incremented {
-        #[key]
-        pub id: felt252,
-        pub count: u64,
+    #[storage]
+    struct Storage {
+        #[substorage(v0)]
+        bomb_game: BombGameComponent::Storage,
+    }
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        #[flat]
+        BombGameEvent: BombGameComponent::Event,
     }
 
     #[abi(embed_v0)]
     impl ActionsImpl of IActions<ContractState> {
-        fn increment(ref self: ContractState) {
-            // Get the default world.
-            let mut world = self.world_default();
-
-            let mut counter: Counter = world.read_model(0);
-            counter.count += 1;
-            world.write_model(@counter);
-
-            world.emit_event(@Incremented { id: 0, count: counter.count });
+        fn create_game(ref self: ContractState) {
+            let world = self.world_storage();
+            self.bomb_game.create_game(world);
         }
+
+        fn join_game(ref self: ContractState, pit_id: u32) {
+            let world = self.world_storage();
+            self.bomb_game.join_game(world, pit_id);
+        }
+
+        // fn move_to_square(ref self: ContractState, pit_id: u32, square_id: u8) {
+        //     let world = self.world_storage();
+        //     self.bomb_game.move_to_square(world, pit_id, square_id);
+        // }
     }
 
     #[generate_trait]
-    impl InternalImpl of InternalTrait {
-        /// Use the default namespace "dojo_starter". This function is handy since the ByteArray
-        /// can't be const.
-        fn world_default(self: @ContractState) -> dojo::world::WorldStorage {
-            self.world(@"dojo_starter")
+    impl Private of PrivateTrait {
+        fn world_storage(self: @ContractState) -> WorldStorage {
+            self.world(@DEFAULT_NS())
         }
     }
 }

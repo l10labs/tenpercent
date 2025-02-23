@@ -2,17 +2,23 @@ pub mod constants;
 pub mod store;
 
 pub mod models {
+    pub mod game;
     pub mod index;
-    pub mod pit;
     pub mod player;
-    pub mod square;
-    pub mod round_result;
+    pub mod tile;
 }
 
 pub mod components {
-    pub mod bomb_game;
+    pub mod playable;
 }
 
 pub mod systems {
     pub mod actions;
+}
+
+pub mod helpers {}
+
+#[cfg(test)]
+pub mod tests {
+    pub mod setup;
 }

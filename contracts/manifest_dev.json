@@ -1312,8 +1312,8 @@
   },
   "contracts": [
     {
-      "address": "0x676f09df40a5f868808be5432055a408c413a03a77af6b921dbcc68fa7e042e",
-      "class_hash": "0x39ebc3d65e36dc5bc87fac984af0da33f12153681057a842931a705c74f60d9",
+      "address": "0x5e5c82ade17b8c33e22cc2104608174e4c6e74460ba34410c23255ed0c4116",
+      "class_hash": "0x7e3f835d4d81155564e0383aed70094087d25adc615f5707d5862625df7d22",
       "abi": [
         {
           "type": "impl",
@@ -1376,8 +1376,20 @@
           "items": [
             {
               "type": "function",
-              "name": "increment",
+              "name": "create_game",
               "inputs": [],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "join_game",
+              "inputs": [
+                {
+                  "name": "pit_id",
+                  "type": "core::integer::u32"
+                }
+              ],
               "outputs": [],
               "state_mutability": "external"
             }
@@ -1482,6 +1494,121 @@
         },
         {
           "type": "event",
+          "name": "dojo_starter::components::bomb_game::BombGameComponent::GameCreated",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "pit_id",
+              "type": "core::integer::u32",
+              "kind": "data"
+            },
+            {
+              "name": "creator",
+              "type": "core::starknet::contract_address::ContractAddress",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo_starter::components::bomb_game::BombGameComponent::PlayerJoined",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "pit_id",
+              "type": "core::integer::u32",
+              "kind": "data"
+            },
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo_starter::components::bomb_game::BombGameComponent::PlayerMoved",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "pit_id",
+              "type": "core::integer::u32",
+              "kind": "data"
+            },
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress",
+              "kind": "data"
+            },
+            {
+              "name": "from_square",
+              "type": "core::integer::u8",
+              "kind": "data"
+            },
+            {
+              "name": "to_square",
+              "type": "core::integer::u8",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo_starter::components::bomb_game::BombGameComponent::RoundCompleted",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "pit_id",
+              "type": "core::integer::u32",
+              "kind": "data"
+            },
+            {
+              "name": "round",
+              "type": "core::integer::u32",
+              "kind": "data"
+            },
+            {
+              "name": "losing_square",
+              "type": "core::integer::u8",
+              "kind": "data"
+            },
+            {
+              "name": "penalty_amount",
+              "type": "core::integer::u128",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo_starter::components::bomb_game::BombGameComponent::Event",
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "GameCreated",
+              "type": "dojo_starter::components::bomb_game::BombGameComponent::GameCreated",
+              "kind": "nested"
+            },
+            {
+              "name": "PlayerJoined",
+              "type": "dojo_starter::components::bomb_game::BombGameComponent::PlayerJoined",
+              "kind": "nested"
+            },
+            {
+              "name": "PlayerMoved",
+              "type": "dojo_starter::components::bomb_game::BombGameComponent::PlayerMoved",
+              "kind": "nested"
+            },
+            {
+              "name": "RoundCompleted",
+              "type": "dojo_starter::components::bomb_game::BombGameComponent::RoundCompleted",
+              "kind": "nested"
+            }
+          ]
+        },
+        {
+          "type": "event",
           "name": "dojo_starter::systems::actions::actions::Event",
           "kind": "enum",
           "variants": [
@@ -1494,6 +1621,11 @@
               "name": "WorldProviderEvent",
               "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
               "kind": "nested"
+            },
+            {
+              "name": "BombGameEvent",
+              "type": "dojo_starter::components::bomb_game::BombGameComponent::Event",
+              "kind": "flat"
             }
           ]
         }
@@ -1502,7 +1634,8 @@
       "tag": "dojo_starter-actions",
       "selector": "0x7a1c71029f2d0b38e3ac89b09931d08b6e48417e079c289ff19a8698d0cba33",
       "systems": [
-        "increment",
+        "create_game",
+        "join_game",
         "upgrade"
       ]
     }
@@ -1511,18 +1644,29 @@
   "models": [
     {
       "members": [],
-      "class_hash": "0x4b57e625d7a82b51a165d2d3437f90d88290f9dbe34619e431d63f1e4c26469",
-      "tag": "dojo_starter-Counter",
-      "selector": "0x5c36ccd6a852f08c27bb21b6a8b4ec9fa8b520cb8a961cb32fff0944f7a3ceb"
-    }
-  ],
-  "events": [
+      "class_hash": "0x6a54280f75e7869ff94fa9def8a4fb8435ba04883b7d63a9d07544597552f6b",
+      "tag": "dojo_starter-Pit",
+      "selector": "0x6030bb1db8b76a016d7e88a44805abb57397bc44da2fa4f443d827172c2296c"
+    },
     {
       "members": [],
-      "class_hash": "0x769a55f3f22c5f16e74fe46256cab9f96a623aa1a2c01fd038e212bcdd14518",
-      "tag": "dojo_starter-Incremented",
-      "selector": "0x44fc80fa51b3d8d8d057ba751055a57a8d2a296cbf1de0eeba0d3c48af6dddc"
+      "class_hash": "0x659082b88cf654aa1b3c5c7c56eec6ac972e88e513076d690c6fba2fd80d354",
+      "tag": "dojo_starter-Player",
+      "selector": "0x1cccb05d982525914bcdce99f0af51556dcb8d9f0e2317c0ad0221d13a809f9"
+    },
+    {
+      "members": [],
+      "class_hash": "0x70377c3282b60b3e4cf14803beb564c9611aa26c24ab5abe1ff71a731123edb",
+      "tag": "dojo_starter-RoundResult",
+      "selector": "0x1a15edba4f1a7c95d8797632aaf75dd5cf93a94fcda2ba8b3fef9214d65b4e0"
+    },
+    {
+      "members": [],
+      "class_hash": "0x48c8c725fc8b12fb50dc34ffdbde45525ff0eacefad32a2789560bf473d2d40",
+      "tag": "dojo_starter-Square",
+      "selector": "0x6fec6fd9f31883ff22e6e3d543f3e4c5a23eb42f13be0bfb6a4bffda8e65dbf"
     }
   ],
+  "events": [],
   "external_contracts": []
 }
