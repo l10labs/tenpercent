@@ -1,22 +1,30 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
-	import type { Player, Square, GameResult, GameState } from '$lib/types';
+	import type { Player, Square, GameResult, GameResponse, SerializableSquare } from '$lib/types';
 
-	export let data: GameState;
-
+	// Initialize data with default values
+	let data: GameResponse = {
+		squares: [],
+		bombCounter: 5,
+		roundNumber: 1,
+		previousRoundResult: null,
+		success: true
+	};
 	let playerName = '';
 	let eventSource: EventSource;
 	let isLoading = false;
 	let errorMessage = '';
 	let gameResult: GameResult | null = null;
 
-	function getPlayers(players: Set<Player>): Player[] {
-		return Array.from(players);
+	function getPlayers(square: SerializableSquare | undefined): Player[] {
+		if (!square) return [];
+		return square.players;
 	}
 
 	function getHighestBalanceSquares(): number[] {
 		if (gameResult) return gameResult.losingSquares;
+		if (!data?.squares) return [];
 		const balances = data.squares.map((square) => square.totalBalancePoints);
 		const maxBalance = Math.max(...balances);
 		return balances.reduce((acc, balance, index) => {
@@ -25,13 +33,13 @@
 		}, [] as number[]);
 	}
 
-	$: isJoined = data.squares.some((square) =>
-		getPlayers(square.players).some((player) => player.name === playerName)
-	);
+	$: isJoined = data?.squares?.some((square) =>
+		square.players.some((player) => player.name === playerName)
+	) ?? false;
 
-	$: currentSquare = data.squares.findIndex((square) =>
-		getPlayers(square.players).some((player) => player.name === playerName)
-	);
+	$: currentSquare = data?.squares?.findIndex((square) =>
+		square.players.some((player) => player.name === playerName)
+	) ?? -1;
 
 	function showError(message: string) {
 		errorMessage = message;
@@ -40,25 +48,41 @@
 		}, 5000);
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		if (browser) {
 			playerName = localStorage.getItem('playerName') || '';
-			eventSource = new EventSource('/api/game-updates');
 			
-			eventSource.onmessage = (event) => {
-				const newData = JSON.parse(event.data) as GameState;
-				data = newData;
-				
-				if (newData.gameResult && !gameResult) {
-					gameResult = newData.gameResult;
-					// Clear the game result (and red background) after 2 seconds
-					setTimeout(() => {
-						gameResult = null;
-					}, 2000);
-				}
-			};
+			try {
+				// Initial game state
+				const response = await fetch('/api/status');
+				const result = await response.json();
+				if (!response.ok) throw new Error(result.error || 'Failed to fetch game status');
+				data = result;
 
-			eventSource.onerror = () => {};
+				// Setup SSE
+				eventSource = new EventSource('/api/game-updates');
+				eventSource.onmessage = (event) => {
+					try {
+						const newData = JSON.parse(event.data) as GameResponse;
+						data = newData;
+						
+						if (newData.gameResult && !gameResult) {
+							gameResult = newData.gameResult;
+							setTimeout(() => {
+								gameResult = null;
+							}, 2000);
+						}
+					} catch (error) {
+						console.error('Error processing SSE message:', error);
+					}
+				};
+
+				eventSource.onerror = () => {
+					console.error('SSE connection error');
+				};
+			} catch (error) {
+				showError(error instanceof Error ? error.message : 'Failed to initialize game');
+			}
 		}
 	});
 
@@ -76,13 +100,13 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ playerName })
 			});
-			const result = await response.json() as GameState;
-			if (!response.ok) throw new Error(result.error);
+			const result = await response.json();
+			if (!response.ok) throw new Error(result.error || 'Failed to join');
 			data = result;
 			localStorage.setItem('playerName', playerName);
 			errorMessage = '';
 		} catch (error) {
-			showError(`Failed to join: ${error}`);
+			showError(error instanceof Error ? error.message : 'Failed to join');
 		}
 	}
 
@@ -97,12 +121,24 @@
 				body: JSON.stringify({ playerName, toSquare })
 			});
 			const result = await response.json();
-			if (!response.ok) throw new Error(result.error);
+			if (!response.ok) throw new Error(result.error || 'Failed to move');
 			data = result;
 		} catch (error) {
-			errorMessage = `Failed to move: ${error}`;
+			showError(error instanceof Error ? error.message : 'Failed to move');
 		} finally {
 			isLoading = false;
+		}
+	}
+
+	async function handleReset() {
+		try {
+			const response = await fetch('/api/reset', { method: 'POST' });
+			const result = await response.json();
+			if (!response.ok) throw new Error(result.error || 'Failed to reset');
+			data = result;
+			gameResult = null;
+		} catch (error) {
+			showError(error instanceof Error ? error.message : 'Failed to reset');
 		}
 	}
 
@@ -113,115 +149,96 @@
 	}
 </script>
 
-<main>
+<main class="container mx-auto px-4 py-8 max-w-4xl">
+	<div class="mb-8">
+		<h1 class="text-3xl font-bold mb-4">Bomb Game</h1>
+		
+		{#if !isJoined}
+			<form on:submit={handleJoin} class="flex gap-2">
+				<input
+					type="text"
+					bind:value={playerName}
+					placeholder="Enter your name"
+					class="px-4 py-2 border rounded"
+				/>
+				<button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+					Join Game
+				</button>
+			</form>
+		{:else}
+			<div class="flex gap-2">
+				<span class="py-2">Playing as: <strong>{playerName}</strong></span>
+				<button 
+					on:click={handleLeave}
+					class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+				>
+					Leave Game
+				</button>
+				<button 
+					on:click={handleReset}
+					class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+				>
+					Reset Game
+				</button>
+			</div>
+		{/if}
+	</div>
+
 	{#if errorMessage}
-		<div class="error">{errorMessage}</div>
-	{/if}
-
-	<div>Round {data.roundNumber}</div>
-
-	{#if data.previousRoundResult}
-		<div class="previous-round">
-			{#if data.previousRoundResult.losingSquares.length > 1}
-				<div>Double whammy in Round {data.previousRoundResult.roundNumber}! Squares {data.previousRoundResult
-					.losingSquares.join(' and ')} lost with {data.previousRoundResult.losingSquares
-					.map(square => `${data.previousRoundResult.totalBalances[square]}`).join(' and ')} points</div>
-			{:else}
-				<div>Last Round {data.previousRoundResult.roundNumber}: Square {data.previousRoundResult
-					.losingSquares[0]} lost with
-				{data.previousRoundResult.totalBalances[data.previousRoundResult.losingSquares[0]]} points</div>
-			{/if}
+		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+			{errorMessage}
 		</div>
 	{/if}
 
-	{#if !gameResult}
-		<div>Moves until bomb: {data.bombCounter}</div>
-	{/if}
+	<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+		Bomb explodes in: <strong>{data?.bombCounter}</strong> moves
+	</div>
 
-	{#if !isJoined}
-		<form on:submit={handleJoin}>
-			<input bind:value={playerName} placeholder="Enter name" required />
-			<button type="submit" disabled={isLoading}>Join</button>
-		</form>
-	{:else}
-		<div>Playing as: {playerName}</div>
-	{/if}
-
-	<div class="board">
-		{#each data.squares as square, i}
-			{@const highestBalanceSquares = getHighestBalanceSquares()}
+	<div class="grid grid-cols-2 gap-4">
+		{#each Array(4) as _, i}
 			<button
-				class="square"
-				class:current={currentSquare === i}
-				class:lost={gameResult && gameResult.losingSquares.includes(i)}
-				class:previous-loser={data.previousRoundResult &&
-					data.previousRoundResult.losingSquares.includes(i)}
+				class="p-6 border rounded-lg text-left transition-colors duration-200
+					{currentSquare === i ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'}
+					{gameResult?.losingSquares?.includes(i) ? 'bg-red-100 border-red-200' : ''}
+					{isJoined && currentSquare !== i && !isLoading ? 'cursor-pointer' : 'cursor-not-allowed'}"
 				on:click={() => handleMove(i)}
 				disabled={!isJoined || currentSquare === i || isLoading}
 			>
-				Square {i}
-				{#if highestBalanceSquares.includes(i)}
-					💣 {gameResult ? gameResult.totalBalances[i] : data.bombCounter}
-				{/if}
-				<div>
-					{#each getPlayers(square.players) as player}
-						<div class:self={player.name === playerName}>
-							{player.name} (${player.balance})
+				<h3 class="text-lg font-semibold mb-2">Square {i + 1}</h3>
+				<div class="space-y-1">
+					{#each getPlayers(data?.squares?.[i]) as player}
+						<div class="flex justify-between items-center">
+							<span class={player.name === playerName ? 'font-bold' : ''}>
+								{player.name}
+							</span>
+							<span class="text-gray-600">
+								Balance: {player.balance}
+							</span>
 						</div>
 					{/each}
 				</div>
-				<div>Total: ${square.totalBalancePoints}</div>
+				<div class="mt-2 text-sm text-gray-500">
+					Total Points: {data?.squares?.[i]?.totalBalancePoints ?? 0}
+				</div>
 			</button>
 		{/each}
 	</div>
 
-	{#if isJoined}
-		<button on:click={handleLeave}>Leave Game</button>
+	{#if data?.previousRoundResult}
+		<div class="mt-4 p-4 bg-gray-100 rounded">
+			<h3 class="font-semibold">Previous Round Result:</h3>
+			<p>
+				Squares {data.previousRoundResult.losingSquares.map(i => i + 1).join(', ')} lost points
+				{#if data.previousRoundResult.isDraw}
+					(Draw)
+				{/if}
+			</p>
+		</div>
 	{/if}
 </main>
 
 <style>
-	.board {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 10px;
-		margin: 10px 0;
-	}
-
-	.square {
-		padding: 10px;
-		text-align: left;
-		width: 100%;
-	}
-
-	.current {
-		background: #e3f2fd;
-	}
-
-	.lost {
-		background: #ffebee;
-	}
-
-	.previous-loser {
-		border: 1px solid #ffebee;
-	}
-
-	.self {
-		font-weight: bold;
-	}
-
-	.error {
-		color: red;
-	}
-
-	.previous-round {
-		background: #f5f5f5;
-		padding: 5px;
-		margin: 5px 0;
-		font-size: 0.9em;
-	}
-
-	.square.lost {
-		background-color: #ffebee !important;
+	:global(body) {
+		background-color: #f9fafb;
 	}
 </style>

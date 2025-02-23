@@ -46,6 +46,7 @@ export interface GameResponse extends SerializableGameState {
 	success: boolean;
 	error?: string;
 	gameResult?: GameResult;
+	points?: Record<string, number>;
 }
 
 // API request types
