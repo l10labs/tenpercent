@@ -3,7 +3,8 @@ import type { Player, Square, GameResult, GameState, SerializableGameState } fro
 export class Game {
 	private squares: Square[] = [];
 	private lobby: Set<Player> = new Set();
-	private bombCounter: number = 5;
+	private bombCounter: number = 50;
+	private maxBombCounter: number = 50;
 	private roundNumber: number = 1;
 	private previousRoundResult: GameResult | null = null;
 
@@ -45,12 +46,13 @@ export class Game {
 	}
 
 	private startNewRound(): void {
-		// Reset bomb counter for new round
-		this.bombCounter = 5;
+		// Calculate new bomb counter based on number of players
+		const playerCount = this.lobby.size;
+		this.maxBombCounter = Math.min(50 + (playerCount * 50), 1000);
+		this.bombCounter = this.maxBombCounter;
+
 		this.roundNumber++;
 
-		// No need to update totalBalancePoints here since it's already done in checkForBombResult
-		// We only need to update if players move between rounds
 		this.squares.forEach(square => {
 			square.totalBalancePoints = Array.from(square.players)
 				.reduce((total, player) => total + player.balance, 0);
@@ -113,12 +115,12 @@ export class Game {
 				roundNumber: this.roundNumber,
 				penaltyAmount: totalPenalty,
 				affectedPlayers: {
-					losing: losingPlayers.map(p => ({ 
-						name: p.name, 
+					losing: losingPlayers.map(p => ({
+						name: p.name,
 						penalty: p.balance * 0.1 // Keep exact penalty amount
 					})),
-					safe: safePlayers.map(p => ({ 
-						name: p.name, 
+					safe: safePlayers.map(p => ({
+						name: p.name,
 						reward: totalPenalty * (p.balance / totalSafeBalance) // Keep exact reward amount
 					}))
 				}
@@ -126,7 +128,7 @@ export class Game {
 
 			// Store current result before starting new round
 			this.previousRoundResult = result;
-			
+
 			// Start new round - this will reset the bomb counter and increment round number
 			this.startNewRound();
 
@@ -225,10 +227,11 @@ export class Game {
 	}
 
 	resetGame(): void {
-		this.bombCounter = 5;
+		this.bombCounter = 50;
+		this.maxBombCounter = 50;
 		this.roundNumber = 1;
 		this.lobby = new Set();
-		this.previousRoundResult = null; // Reset previous round result
+		this.previousRoundResult = null;
 		this.initializeSquares();
 	}
 
@@ -236,8 +239,9 @@ export class Game {
 		return {
 			squares: this.squares,
 			bombCounter: this.bombCounter,
+			maxBombCounter: this.maxBombCounter,
 			roundNumber: this.roundNumber,
-			previousRoundResult: this.previousRoundResult // Include in game state
+			previousRoundResult: this.previousRoundResult
 		};
 	}
 
@@ -248,8 +252,9 @@ export class Game {
 				totalBalancePoints: square.totalBalancePoints
 			})),
 			bombCounter: this.bombCounter,
+			maxBombCounter: this.maxBombCounter,
 			roundNumber: this.roundNumber,
-			previousRoundResult: this.previousRoundResult // Include in serializable state
+			previousRoundResult: this.previousRoundResult
 		};
 	}
 }

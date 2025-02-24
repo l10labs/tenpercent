@@ -34,6 +34,7 @@ export interface GameResult {
 export interface GameState {
 	squares: Square[];
 	bombCounter: number;
+	maxBombCounter: number;
 	roundNumber: number;
 	previousRoundResult: GameResult | null;
 }
@@ -42,6 +43,7 @@ export interface GameState {
 export interface SerializableGameState {
 	squares: SerializableSquare[];
 	bombCounter: number;
+	maxBombCounter: number;
 	roundNumber: number;
 	previousRoundResult: GameResult | null;
 }
@@ -138,7 +140,7 @@ export interface GameHistory {
 
 // Constants
 export const INITIAL_BALANCE = 10;
-export const INITIAL_BOMB_COUNTER = 5;
+export const INITIAL_BOMB_COUNTER = 50;
 export const TOTAL_SQUARES = 4;
 
 // Configuration interface

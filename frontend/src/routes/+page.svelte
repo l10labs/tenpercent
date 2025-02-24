@@ -9,16 +9,76 @@
 	// Array of fun emojis that could represent players
 	const avatarEmojis = [
 		// Animals
-		"🦊", "🐯", "🦁", "🐮", "🐷", "🐸", "🐙", "🦄", "🦋", "🐬", "🦉", "🦒", "🐘", "🦩", "🐧",
-		"🦆", "🦅", "🦍", "🦘", "🦦", "🦥", "🦨", "🦡", "🦌", "🐿️", "🦫", "🦭", "🐠", "🦈", "🦕",
+		'🦊',
+		'🐯',
+		'🦁',
+		'🐮',
+		'🐷',
+		'🐸',
+		'🐙',
+		'🦄',
+		'🦋',
+		'🐬',
+		'🦉',
+		'🦒',
+		'🐘',
+		'🦩',
+		'🐧',
+		'🦆',
+		'🦅',
+		'🦍',
+		'🦘',
+		'🦦',
+		'🦥',
+		'🦨',
+		'🦡',
+		'🦌',
+		'🐿️',
+		'🦫',
+		'🦭',
+		'🐠',
+		'🦈',
+		'🦕',
 		// Fantasy/Mythical
-		"🐲", "🧚", "🧛", "🧜", "🧝", "🧞", "🧟", "👻", "🤖",
+		'🐲',
+		'🧚',
+		'🧛',
+		'🧜',
+		'🧝',
+		'🧞',
+		'🧟',
+		'👻',
+		'🤖',
 		// Food
-		"🍎", "🍕", "🌮", "🍦", "🥑", "🍪", "🥐", "🧁", "🍄",
+		'🍎',
+		'🍕',
+		'🌮',
+		'🍦',
+		'🥑',
+		'🍪',
+		'🥐',
+		'🧁',
+		'🍄',
 		// Nature
-		"🌺", "🌻", "🌹", "🌈", "⭐", "🌙", "❄️", "🔥", "🌵",
+		'🌺',
+		'🌻',
+		'🌹',
+		'🌈',
+		'⭐',
+		'🌙',
+		'❄️',
+		'🔥',
+		'🌵',
 		// Fun Objects
-		"🎨", "🎮", "🎲", "🎸", "🎭", "💎", "🎪", "🎯", "🎵"
+		'🎨',
+		'🎮',
+		'🎲',
+		'🎸',
+		'🎭',
+		'💎',
+		'🎪',
+		'🎯',
+		'🎵'
 	];
 	let playerEmoji = '';
 
@@ -31,28 +91,26 @@
 	function getBackgroundColor(points: number, squares: SerializableSquare[]): string {
 		if (!squares.length) return 'rgba(0, 255, 0, 0.1)'; // Light green for empty
 		if (points === 0) return 'rgba(0, 255, 0, 0.1)'; // Light green for zero
-		
-		const allPoints = squares.map(s => s.totalBalancePoints);
-		const sortedPoints = [...allPoints].sort((a, b) => b - a); // Sort descending
-		const pointRank = allPoints.indexOf(points);
-		const isTopHalf = sortedPoints.indexOf(points) < 2; // First 2 squares are "top half"
-		
-		// Calculate intensity (0 to 1) based on position within its half
-		const intensity = isTopHalf
-			? points / Math.max(...allPoints) // For red (top half)
-			: 1 - (points / Math.max(...allPoints)); // For green (bottom half)
-		
-		// Return red for top half, green for bottom half
-		return isTopHalf
-			? `rgba(255, 0, 0, ${0.1 + (intensity * 0.2)})` // Red with opacity 0.1-0.3
-			: `rgba(0, 255, 0, ${0.1 + (intensity * 0.2)})`; // Green with opacity 0.1-0.3
+
+		const allPoints = squares.map((s) => s.totalBalancePoints);
+		const maxPoints = Math.max(...allPoints);
+		const isHighest = points === maxPoints && points > 0;
+
+		// Calculate intensity based on points relative to max
+		const intensity = points / maxPoints;
+
+		// Return red for highest, green for others
+		return isHighest
+			? `rgba(255, 0, 0, ${0.1 + intensity * 0.2})` // Red with opacity 0.1-0.3
+			: `rgba(0, 255, 0, ${0.1 + intensity * 0.2})`; // Green with opacity 0.1-0.3
 	}
 
 	// Initialize data with default values
 	let highestBalanceSquare = 0;
 	let data: GameResponse = {
 		squares: [],
-		bombCounter: 5,
+		bombCounter: 50,
+		maxBombCounter: 50,
 		roundNumber: 1,
 		previousRoundResult: null,
 		success: true
@@ -64,10 +122,12 @@
 	let gameResult: GameResult | null = null;
 	let previousBalance = 0;
 	let balanceChangeClass = '';
+	let isAutoMoving = false;
+	let autoMoveInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Track balance changes
-	$: currentBalance = getPlayers(data?.squares?.[currentSquare])
-		?.find(p => p.name === playerName)?.balance ?? 0;
+	$: currentBalance =
+		getPlayers(data?.squares?.[currentSquare])?.find((p) => p.name === playerName)?.balance ?? 0;
 
 	$: if (currentBalance !== previousBalance && previousBalance !== 0) {
 		balanceChangeClass = currentBalance > previousBalance ? 'balance-increase' : 'balance-decrease';
@@ -82,9 +142,9 @@
 	// Track which square has the highest balance
 	$: {
 		if (data?.squares) {
-			const balances = data.squares.map(square => square.totalBalancePoints);
+			const balances = data.squares.map((square) => square.totalBalancePoints);
 			const maxBalance = Math.max(...balances);
-			highestBalanceSquare = balances.findIndex(balance => balance === maxBalance);
+			highestBalanceSquare = balances.findIndex((balance) => balance === maxBalance);
 		}
 	}
 
@@ -104,13 +164,14 @@
 		}, [] as number[]);
 	}
 
-	$: isJoined = data?.squares?.some((square) =>
-		square.players.some((player) => player.name === playerName)
-	) ?? false;
+	$: isJoined =
+		data?.squares?.some((square) => square.players.some((player) => player.name === playerName)) ??
+		false;
 
-	$: currentSquare = data?.squares?.findIndex((square) =>
-		square.players.some((player) => player.name === playerName)
-	) ?? -1;
+	$: currentSquare =
+		data?.squares?.findIndex((square) =>
+			square.players.some((player) => player.name === playerName)
+		) ?? -1;
 
 	function showError(message: string) {
 		errorMessage = message;
@@ -123,7 +184,7 @@
 		if (browser) {
 			playerName = localStorage.getItem('playerName') || '';
 			playerEmoji = localStorage.getItem('playerEmoji') || getRandomEmoji();
-			
+
 			try {
 				// Initial game state
 				const response = await fetch('/api/status');
@@ -137,7 +198,7 @@
 					try {
 						const newData = JSON.parse(event.data) as GameResponse;
 						data = newData;
-						
+
 						if (newData.gameResult && !gameResult) {
 							gameResult = newData.gameResult;
 							setTimeout(() => {
@@ -159,6 +220,7 @@
 	});
 
 	onDestroy(() => {
+		stopAutoMove();
 		if (eventSource) eventSource.close();
 	});
 
@@ -222,118 +284,184 @@
 		localStorage.removeItem('playerEmoji');
 		window.location.reload();
 	}
+
+	async function startAutoMove() {
+		if (!isJoined || isLoading || autoMoveInterval) return;
+		isAutoMoving = true;
+
+		autoMoveInterval = setInterval(async () => {
+			if (!isJoined || isLoading) {
+				stopAutoMove();
+				return;
+			}
+
+			// Get available squares (all except current)
+			const availableSquares = [0, 1, 2, 3].filter((i) => i !== currentSquare);
+			if (availableSquares.length === 0) return;
+
+			// Pick random square
+			const randomSquare = availableSquares[Math.floor(Math.random() * availableSquares.length)];
+			await handleMove(randomSquare);
+		}, 200); // 5 times per second = 200ms
+	}
+
+	function stopAutoMove() {
+		if (autoMoveInterval) {
+			clearInterval(autoMoveInterval);
+			autoMoveInterval = null;
+		}
+		isAutoMoving = false;
+	}
 </script>
 
-<main class="container mx-auto px-4 py-8 max-w-3xl">
+<main class="container mx-auto max-w-3xl px-4 py-8">
 	{#if isJoined}
-		<div class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
-			<div class="container mx-auto px-4 py-2 max-w-3xl flex justify-between items-center gap-4">
+		<div class="fixed top-0 right-0 left-0 z-50 bg-white shadow-md">
+			<div class="container mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-2">
 				<div class="flex items-center gap-2">
-					<div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-2xl">
+					<div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-2xl">
 						{playerEmoji}
 					</div>
 					<span class="font-medium">{playerName}</span>
 				</div>
-				<div class="text-xl font-bold text-gray-800">
-					Ten Percent
+				<div class="text-xl font-bold text-gray-800">Ten Percent</div>
+				<div class="flex gap-2">
+					<button
+						on:click={() => (isAutoMoving ? stopAutoMove() : startAutoMove())}
+						class="flex items-center gap-2 rounded bg-blue-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+						disabled={!isJoined || isLoading}
+					>
+						<span>{isAutoMoving ? 'Stop Auto' : 'Auto Move'}</span>
+						<span class="text-lg">🤖</span>
+					</button>
+					<button
+						on:click={handleLeave}
+						class="flex items-center gap-2 rounded bg-red-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-600"
+					>
+						<span>Leave Game</span>
+						<span class="text-lg">👋</span>
+					</button>
 				</div>
-				<button 
-					on:click={handleLeave}
-					class="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600 transition-colors flex items-center gap-2"
-				>
-					<span>Leave Game</span>
-					<span class="text-lg">👋</span>
-				</button>
 			</div>
 		</div>
-		<div class="h-14"></div> <!-- Spacer to prevent content from going under fixed header -->
+		<div class="h-14"></div>
+		<!-- Spacer to prevent content from going under fixed header -->
 	{/if}
 
 	<div class="mb-12 text-center">
-		<h1 class="text-4xl font-bold mb-6 text-gray-800">
+		<h1 class="mb-6 text-4xl font-bold text-gray-800">
 			{#if !isJoined}
 				Ten Percent
 			{/if}
 		</h1>
-		
+
 		{#if !isJoined}
-			<form on:submit={handleJoin} class="flex flex-col items-center gap-3 max-w-sm mx-auto">
-				<div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-2xl mb-2">
+			<form on:submit={handleJoin} class="mx-auto flex max-w-sm flex-col items-center gap-3">
+				<div
+					class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-2xl"
+				>
 					{playerEmoji}
 				</div>
 				<input
 					type="text"
 					bind:value={playerName}
 					placeholder="Enter your name"
-					class="w-full px-4 py-2 text-base border-2 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+					class="w-full rounded-lg border-2 px-4 py-2 text-center text-base shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
 				/>
-				<button 
-					type="submit" 
-					class="w-full bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+				<button
+					type="submit"
+					class="flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-medium text-white shadow-sm transition-colors hover:bg-green-600"
 				>
 					<span>Join Game</span>
 					<span class="text-xl">💰</span>
 				</button>
 			</form>
 		{:else}
-			<div class="flex flex-col items-center mb-8">
+			<div class="mb-8 flex flex-col items-center">
 				{#if data?.squares}
-					<div class="text-5xl font-bold text-black {balanceChangeClass} tracking-tight">
-						${(getPlayers(data.squares[currentSquare])
-							.find(p => p.name === playerName)?.balance ?? 0).toFixed(2)}
-					</div>
-					{#if currentSquare !== -1}
-						{#if data.squares[currentSquare]?.totalBalancePoints > 0}
-							{@const player = getPlayers(data.squares[currentSquare]).find(p => p.name === playerName)}
-							{@const profitPercent = ((player?.balance ?? 0) - INITIAL_BALANCE) / INITIAL_BALANCE * 100}
-							<div class="text-sm mt-1 {profitPercent >= 0 ? 'text-green-500' : 'text-red-500'}">
-								{profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%
+					<div class="flex items-center gap-4">
+						<span class="text-6xl">💰</span>
+						<div class="flex flex-col items-center">
+							<div class="text-7xl font-bold text-black {balanceChangeClass} tracking-tight">
+								${(
+									getPlayers(data.squares[currentSquare]).find((p) => p.name === playerName)
+										?.balance ?? 0
+								).toFixed(2)}
 							</div>
-						{/if}
-					{/if}
+							{#if currentSquare !== -1}
+								{#if data.squares[currentSquare]?.totalBalancePoints > 0}
+									{@const player = getPlayers(data.squares[currentSquare]).find(
+										(p) => p.name === playerName
+									)}
+									{@const profitPercent =
+										(((player?.balance ?? 0) - INITIAL_BALANCE) / INITIAL_BALANCE) * 100}
+									<div
+										class="mt-2 text-base {profitPercent >= 0 ? 'text-green-500' : 'text-red-500'}"
+									>
+										{profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%
+									</div>
+								{/if}
+							{/if}
+						</div>
+						<span class="text-6xl">💰</span>
+					</div>
 				{/if}
 			</div>
 		{/if}
 	</div>
 
 	{#if errorMessage}
-		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center max-w-md mx-auto">
+		<div
+			class="mx-auto mb-4 max-w-md rounded border border-red-400 bg-red-100 px-4 py-3 text-center text-red-700"
+		>
 			{errorMessage}
 		</div>
 	{/if}
 
-	<div class="flex justify-between items-center mb-8 max-w-2xl mx-auto">
+	<div class="mx-auto mb-8 flex max-w-2xl items-center justify-between">
 		<div class="w-full">
-			<div class="flex justify-between text-sm mb-2 text-gray-600 font-medium">
+			<div class="mb-2 flex justify-between text-sm font-medium text-gray-600">
 				<span>Bomb explodes in: <strong>{data?.bombCounter}</strong> moves</span>
-				<span>{Math.round((data?.bombCounter / 5) * 100)}%</span>
+				<span>
+					{#if data?.bombCounter != null && data?.maxBombCounter != null}
+						{Math.round((data.bombCounter / data.maxBombCounter) * 100)}%
+					{:else}
+						0%
+					{/if}
+				</span>
 			</div>
-			<div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
-				<div
-					class="h-full transition-all duration-500 ease-in-out rounded-full shadow-sm"
-					style="width: {(data?.bombCounter / 5) * 100}%; background-color: {
-						data?.bombCounter >= 3
-							? `rgba(0, 255, 0, ${0.1 + ((data?.bombCounter / 5) * 0.2)})` // Green for top half (3-5 moves)
-							: `rgba(255, 0, 0, ${0.1 + ((1 - data?.bombCounter / 5) * 0.2)})` // Red for bottom half (0-2 moves)
-					}"
-				></div>
+			<div class="h-5 w-full overflow-hidden rounded-full bg-gray-200 shadow-inner">
+				{#if data?.bombCounter != null && data?.maxBombCounter != null}
+					<div
+						class="h-full rounded-full shadow-sm transition-all duration-500 ease-in-out"
+						style="width: {(data.bombCounter / data.maxBombCounter) *
+							100}%; background-color: {data.bombCounter >= data.maxBombCounter / 2
+							? `rgba(0, 255, 0, ${0.1 + (data.bombCounter / data.maxBombCounter) * 0.2})` // Green for top half
+							: `rgba(255, 0, 0, ${0.1 + (1 - data.bombCounter / data.maxBombCounter) * 0.2})`}"
+					/>
+				{/if}
 			</div>
 		</div>
 	</div>
 
-	<div class="grid grid-cols-2 gap-6 mb-8">
+	<div class="mb-8 grid grid-cols-2 gap-6">
 		{#each Array(4) as _, i}
 			<button
-				class="p-6 border-2 rounded-xl text-left transition-all duration-200 shadow-sm hover:shadow-md
-					{currentSquare === i ? 'bg-blue-50 border-blue-200' : 'hover:bg-opacity-75'}
-					{gameResult?.losingSquares?.includes(i) ? 'bg-red-100 border-red-200' : ''}
+				class="rounded-xl border-2 p-6 text-left shadow-sm transition-all duration-200 hover:shadow-md
+					{currentSquare === i ? 'border-blue-200 bg-blue-50' : 'hover:bg-opacity-75'}
+					{gameResult?.losingSquares?.includes(i) ? 'border-red-200 bg-red-100' : ''}
 					{isJoined && currentSquare !== i && !isLoading ? 'cursor-pointer' : 'cursor-not-allowed'}
-					relative flex flex-col items-center justify-center min-h-[160px]"
-				style="background-color: {getBackgroundColor(data?.squares?.[i]?.totalBalancePoints ?? 0, data?.squares ?? [])}"
+					relative flex min-h-[160px] flex-col items-center justify-center"
+				style="background-color: {getBackgroundColor(
+					data?.squares?.[i]?.totalBalancePoints ?? 0,
+					data?.squares ?? []
+				)}"
 				on:click={() => handleMove(i)}
 				disabled={!isJoined || currentSquare === i || isLoading}
 			>
-				<h3 class="text-lg font-semibold text-gray-700 mb-2">Square {String.fromCharCode(65 + i)}</h3>
+				<h3 class="mb-2 text-lg font-semibold text-gray-700">
+					Square {String.fromCharCode(65 + i)}
+				</h3>
 
 				{#if highestBalanceSquare === i}
 					<div class="bomb-icon mb-3">
@@ -346,13 +474,15 @@
 				</div>
 
 				{#if currentSquare === i}
-					<div class="text-sm mt-2 flex flex-col items-center">
+					<div class="mt-2 flex flex-col items-center text-sm">
 						<div class="text-blue-600">You are here</div>
 						{#if data?.squares?.[i]?.totalBalancePoints > 0}
-							<div class="text-gray-500 mt-1">
-								{Math.round((getPlayers(data.squares[i])
-									.find(p => p.name === playerName)?.balance ?? 0) 
-									/ data.squares[i].totalBalancePoints * 100)}% of total
+							<div class="mt-1 text-gray-500">
+								{Math.round(
+									((getPlayers(data.squares[i]).find((p) => p.name === playerName)?.balance ?? 0) /
+										data.squares[i].totalBalancePoints) *
+										100
+								)}% of total
 							</div>
 						{/if}
 					</div>
@@ -362,12 +492,16 @@
 	</div>
 
 	{#if data?.previousRoundResult}
-		<div class="mt-8 p-8 bg-gray-100 rounded-xl max-w-2xl mx-auto">
-			<h3 class="text-2xl font-bold text-center mb-6 text-gray-800">Round {data.previousRoundResult.roundNumber} Results</h3>
-			
-			<div class="text-center mb-6">
-				<div class="text-lg mb-2">
-					Squares {data.previousRoundResult.losingSquares.map(i => String.fromCharCode(65 + i)).join(', ')} lost
+		<div class="mx-auto mt-8 max-w-2xl rounded-xl bg-gray-100 p-8">
+			<h3 class="mb-6 text-center text-2xl font-bold text-gray-800">
+				Round {data.previousRoundResult.roundNumber} Results
+			</h3>
+
+			<div class="mb-6 text-center">
+				<div class="mb-2 text-lg">
+					Squares {data.previousRoundResult.losingSquares
+						.map((i) => String.fromCharCode(65 + i))
+						.join(', ')} lost
 					{#if data.previousRoundResult.isDraw}
 						<span class="text-gray-500">(Draw)</span>
 					{/if}
@@ -376,31 +510,31 @@
 					${data.previousRoundResult.penaltyAmount.toFixed(2)}
 				</div>
 			</div>
-			
+
 			<div class="grid grid-cols-2 gap-8">
-				<div class="bg-red-50 p-4 rounded-lg">
-					<div class="text-center mb-4">
-						<div class="text-red-800 font-semibold text-lg mb-1">Penalties</div>
+				<div class="rounded-lg bg-red-50 p-4">
+					<div class="mb-4 text-center">
+						<div class="mb-1 text-lg font-semibold text-red-800">Penalties</div>
 						<div class="text-sm text-gray-600">Lost 10% of balance</div>
 					</div>
 					<div class="space-y-2">
 						{#each data.previousRoundResult.affectedPlayers.losing as player}
-							<div class="flex justify-between items-center p-2 bg-white rounded">
+							<div class="flex items-center justify-between rounded bg-white p-2">
 								<span class="font-medium">{player.name}</span>
 								<span class="text-red-600">-${player.penalty.toFixed(2)}</span>
 							</div>
 						{/each}
 					</div>
 				</div>
-				
-				<div class="bg-green-50 p-4 rounded-lg">
-					<div class="text-center mb-4">
-						<div class="text-green-800 font-semibold text-lg mb-1">Rewards</div>
+
+				<div class="rounded-lg bg-green-50 p-4">
+					<div class="mb-4 text-center">
+						<div class="mb-1 text-lg font-semibold text-green-800">Rewards</div>
 						<div class="text-sm text-gray-600">Split proportionally</div>
 					</div>
 					<div class="space-y-2">
 						{#each data.previousRoundResult.affectedPlayers.safe as player}
-							<div class="flex justify-between items-center p-2 bg-white rounded">
+							<div class="flex items-center justify-between rounded bg-white p-2">
 								<span class="font-medium">{player.name}</span>
 								<span class="text-green-600">+${player.reward.toFixed(2)}</span>
 							</div>
@@ -431,7 +565,8 @@
 	}
 
 	@keyframes bounce {
-		0%, 100% {
+		0%,
+		100% {
 			transform: translateY(0);
 		}
 		50% {
@@ -444,7 +579,7 @@
 			color: black;
 		}
 		50% {
-			color: #10B981;  /* text-green-500 */
+			color: #10b981; /* text-green-500 */
 		}
 		100% {
 			color: black;
@@ -456,7 +591,7 @@
 			color: black;
 		}
 		50% {
-			color: #EF4444;  /* text-red-500 */
+			color: #ef4444; /* text-red-500 */
 		}
 		100% {
 			color: black;
