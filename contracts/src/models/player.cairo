@@ -11,7 +11,7 @@ pub mod errors {
 pub impl PlayerImpl of PlayerTrait {
     #[inline]
     fn new(pit_id: u32, player_id: ContractAddress) -> Player {
-        Player { pit_id, player_id, square_id: 0, balance: 0, escrow: 0 }
+        Player { pit_id, player_id, square_id: 0, balance: 0, escrow: 0, current_round: 0 }
     }
 
     #[inline]

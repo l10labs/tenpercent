@@ -27,6 +27,7 @@ pub struct Player {
     #[key]
     pub player_id: ContractAddress,
     pub square_id: u8,
+    pub current_round: u32,
     pub balance: u128,
     pub escrow: u128,
 }
@@ -51,6 +52,7 @@ pub struct RoundResult {
     pub round: u32,
     pub losing_square: u8,
     pub round_reward: u128,
+    pub total_winners_balance: u128,
 }
 
 #[derive(Copy, Drop, Serde)]
