@@ -22,6 +22,7 @@ pub mod BombGameComponent {
         pub const INVALID_SQUARE: felt252 = 'Game: invalid square';
         pub const SAME_SQUARE: felt252 = 'Game: already in square';
         pub const BOMB_EXPLODED: felt252 = 'Game: bomb has exploded';
+        pub const PLAYER_ALREADY_IN_PIT: felt252 = 'Game: player already in pit';
     }
 
     // Storage
@@ -94,6 +95,10 @@ pub mod BombGameComponent {
         fn join_game(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32) {
             let mut store: Store = StoreTrait::new(world);
             let caller = get_caller_address();
+
+            // check if player is already in the pit
+            let mut player = store.get_player(pit_id, caller);
+            assert(player.balance == 0, errors::PLAYER_ALREADY_IN_PIT);
             
             // use only the first pit_id = 0
             let mut pit = store.get_pit(pit_id);

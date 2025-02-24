@@ -2,7 +2,7 @@
 #[starknet::interface]
 trait IActions<TState> {
     fn join_game(ref self: TState, pit_id: u32);
-    fn move_to_square(ref self: TState, pit_id: u32, square_id: u8);
+    fn move(ref self: TState, pit_id: u32, square_id: u8);
 }
 
 // dojo decorator
@@ -43,7 +43,7 @@ pub mod actions {
             self.bomb_game.join_game(world, pit_id);
         }
 
-        fn move_to_square(ref self: ContractState, pit_id: u32, square_id: u8) {
+        fn move(ref self: ContractState, pit_id: u32, square_id: u8) {
             let world = self.world_storage();
             self.bomb_game.move_to_square(world, pit_id, square_id);
             self.bomb_game.progress_round(world, pit_id);

@@ -1312,8 +1312,8 @@
   },
   "contracts": [
     {
-      "address": "0x4bacaa43a3bec25bb176dd0463ca8d3dc460312ff7977340214b6a9d6cbd14c",
-      "class_hash": "0x4535211664126f12a923aa471a091246a3f6bd345b5334f32a6c8b58722821d",
+      "address": "0x6439d790e1f2c10e96edb287198475685d9653fb13b11ebcd8de68104550bf0",
+      "class_hash": "0x3e7148d82253acdc4047357df3bbca712873a54585b2b4990f5087aec5346a4",
       "abi": [
         {
           "type": "impl",
@@ -1395,7 +1395,7 @@
             },
             {
               "type": "function",
-              "name": "move_to_square",
+              "name": "move",
               "inputs": [
                 {
                   "name": "pit_id",
@@ -1650,7 +1650,7 @@
       "systems": [
         "dojo_init",
         "join_game",
-        "move_to_square",
+        "move",
         "upgrade"
       ]
     }
