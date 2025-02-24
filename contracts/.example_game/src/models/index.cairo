@@ -31,6 +31,8 @@ pub struct Player {
     #[key]
     pub address: ContractAddress,
     pub score: u8,
+    pub x: u8,
+    pub y: u8,
 }
 
 #[derive(Copy, Drop, Serde)]

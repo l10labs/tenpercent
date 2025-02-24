@@ -6,8 +6,8 @@ pub mod errors {}
 #[generate_trait]
 pub impl PlayerImpl of PlayerTrait {
     #[inline]
-    fn new(game_id: u128, address: ContractAddress) -> Player {
-        Player { game_id, address, score: 0 }
+    fn new(game_id: u128, address: ContractAddress, x: u8, y: u8) -> Player {
+        Player { game_id, address, score: 0, x, y }
     }
 }
 
