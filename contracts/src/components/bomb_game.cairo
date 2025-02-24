@@ -13,6 +13,7 @@ pub mod BombGameComponent {
     use crate::store::{Store, StoreTrait};
     use crate::models::token::{Token, TokenTrait};
     use crate::constants::{NUM_SQUARES, MINIMUM_ENTRY_BALANCE};
+    use crate::helpers::get_escrow_and_modulo;
 
     // Starknet imports
     use starknet::{get_caller_address, ContractAddress};
@@ -55,7 +56,7 @@ pub mod BombGameComponent {
         pit_id: u32,
         player: ContractAddress,
         square_id: u8,
-        token_amount: u128,
+        wager: u128,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -114,13 +115,10 @@ pub mod BombGameComponent {
             store.set_token(token);
 
             // Emit event
-            self.emit(MockTokensClaimed { 
-                player: caller, 
-                amount: token.balance, 
-            });
+            self.emit(MockTokensClaimed { player: caller, amount: token.balance });
         }
 
-        fn join_game(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32, token_amount: u128) {
+        fn join_game(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32, wager: u128) {
             let mut store: Store = StoreTrait::new(world);
             let caller = get_caller_address();
 
@@ -134,25 +132,25 @@ pub mod BombGameComponent {
 
             // Assertions
             assert(player_pit.balance == 0, errors::PLAYER_ALREADY_IN_PIT);
-            assert(player_tokens.balance >= token_amount, errors::INSUFFICIENT_BALANCE);
-            assert(token_amount >= MINIMUM_ENTRY_BALANCE, errors::DOES_NOT_MEET_MINIMUM_ENTRY_BALANCE);
+            assert(player_tokens.balance >= wager, errors::INSUFFICIENT_BALANCE);
+            assert(wager >= MINIMUM_ENTRY_BALANCE, errors::DOES_NOT_MEET_MINIMUM_ENTRY_BALANCE);
             assert(pit.is_active, errors::PIT_NOT_ACTIVE);
             square.assert_valid_square_id();
 
-            // Modify values
-            player_tokens.balance -= token_amount;
-            player_pit.balance += token_amount;
-
             // Calculate escrow and modulo
-            let (escrow, modulo) = player_pit.get_escrow_and_modulo();
+            let (escrow, modulo) = get_escrow_and_modulo(wager);
+            let playable_balance = wager - escrow;
 
-            player_pit.balance -= escrow;
-            player_pit.locked_balance += escrow;
+            // update balances
+            player_tokens.balance -= wager;
+            player_pit.balance += playable_balance;
+            player_pit.escrow += escrow;
             pit.modulo_pool += modulo;
-            
+
+            square.add_balance(playable_balance);
+            square.add_escrow(escrow);
+
             player_pit.square_id = starting_square;
-            
-            square.add_balance(token_amount);
 
             // Set all modified models
             store.set_player(player_pit);
@@ -162,45 +160,98 @@ pub mod BombGameComponent {
             store.set_square(square);
 
             // Emit event
-            self.emit(PlayerJoined { pit_id, player: caller, square_id: starting_square, token_amount });
+            self.emit(PlayerJoined { pit_id, player: caller, square_id: starting_square, wager });
         }
 
-        fn move_to_square(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32, square_id: u8) {
+        fn move_to_square(
+            ref self: ComponentState<T>, world: WorldStorage, pit_id: u32, square_id: u8,
+        ) {
             let mut store: Store = StoreTrait::new(world);
             let caller = get_caller_address();
 
             // Get all models
-            let mut player = store.get_player(pit_id, caller);
-            let mut square = store.get_square(pit_id, square_id);
-            let mut old_square = store.get_square(pit_id, player.square_id);
+            let mut player_in_pit = store.get_player(pit_id, caller);
+            let mut pit = store.get_pit(pit_id);
+            let mut old_square = store.get_square(pit_id, player_in_pit.square_id);
+            let mut new_square = store.get_square(pit_id, square_id);
             let mut token = store.get_token(caller);
 
             // Assertions
-            square.assert_valid_square_id();
-            assert(player.square_id != square_id, errors::SAME_SQUARE);
+            new_square.assert_valid_square_id();
+            assert(player_in_pit.square_id != square_id, errors::SAME_SQUARE);
+            assert(pit.is_active, errors::PIT_NOT_ACTIVE);
 
-            // Update models
-            old_square.remove_balance(player.balance + player.locked_balance);
-            square.add_balance(player.balance);
-            player.square_id = square_id;
+            // Modify values
+            old_square.remove_balance(player_in_pit.balance);
+            old_square.remove_escrow(player_in_pit.escrow);
+            new_square.add_balance(player_in_pit.balance);
+            new_square.add_escrow(player_in_pit.escrow);
+
+            player_in_pit.square_id = square_id;
             token.increment_moves();
 
             // Set all modified models
             store.set_square(old_square);
-            store.set_square(square);
-            store.set_player(player);
+            store.set_square(new_square);
+            store.set_player(player_in_pit);
             store.set_token(token);
 
             // Emit event
-            self.emit(PlayerMoved { pit_id, player: caller, from_square: player.square_id, to_square: square_id });
+            self
+                .emit(
+                    PlayerMoved {
+                        pit_id,
+                        player: caller,
+                        from_square: player_in_pit.square_id,
+                        to_square: square_id,
+                    },
+                );
         }
+
+        // fn move_to_square(
+        //     ref self: ComponentState<T>, world: WorldStorage, pit_id: u32, square_id: u8,
+        // ) {
+        //     let mut store: Store = StoreTrait::new(world);
+        //     let caller = get_caller_address();
+
+        //     // Get all models
+        //     let mut player = store.get_player(pit_id, caller);
+        //     let mut square = store.get_square(pit_id, square_id);
+        //     let mut old_square = store.get_square(pit_id, player.square_id);
+        //     let mut token = store.get_token(caller);
+
+        //     // Assertions
+        //     square.assert_valid_square_id();
+        //     assert(player.square_id != square_id, errors::SAME_SQUARE);
+
+        //     // Update models
+        //     old_square.remove_balance(player.balance + player.locked_balance);
+        //     square.add_balance(player.balance);
+        //     player.square_id = square_id;
+        //     token.increment_moves();
+
+        //     // Set all modified models
+        //     store.set_square(old_square);
+        //     store.set_square(square);
+        //     store.set_player(player);
+        //     store.set_token(token);
+
+        //     // Emit event
+        //     self
+        //         .emit(
+        //             PlayerMoved {
+        //                 pit_id, player: caller, from_square: player.square_id, to_square:
+        //                 square_id,
+        //             },
+        //         );
+        // }
 
         fn progress_round(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32) {
             let mut store: Store = StoreTrait::new(world);
-            
+
             // Get all models
             let mut pit = store.get_pit(pit_id);
-            
+
             // Assertions
             assert(pit.is_active, errors::PIT_NOT_ACTIVE);
 

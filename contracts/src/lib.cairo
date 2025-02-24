@@ -1,4 +1,5 @@
 pub mod constants;
+pub mod helpers;
 pub mod store;
 
 pub mod models {
@@ -19,7 +20,9 @@ pub mod systems {
     pub mod actions;
 }
 
+#[cfg(test)]
 pub mod tests {
     pub mod test_actions;
     pub mod setup;
 }
+

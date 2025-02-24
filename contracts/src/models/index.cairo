@@ -28,7 +28,7 @@ pub struct Player {
     pub player_id: ContractAddress,
     pub square_id: u8,
     pub balance: u128,
-    pub locked_balance: u128,
+    pub escrow: u128,
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -39,6 +39,7 @@ pub struct Square {
     #[key]
     pub square_id: u8,
     pub total_balance: u128,
+    pub total_escrow: u128,
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -68,4 +69,4 @@ pub struct Token {
     pub balance: u128,
     pub moves_since_last_claim: u32,
     pub has_claimed: bool,
-} 
+}

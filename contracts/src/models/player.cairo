@@ -11,19 +11,7 @@ pub mod errors {
 pub impl PlayerImpl of PlayerTrait {
     #[inline]
     fn new(pit_id: u32, player_id: ContractAddress) -> Player {
-        Player {
-            pit_id,
-            player_id,
-            square_id: 0,
-            balance: 0,
-            locked_balance: 0,
-        }
-    }
-
-    fn get_escrow_and_modulo(self: @Player) -> (u128, u128) {
-        let escrow = (*self.balance * PENALTY_PERCENTAGE) / 100;
-        let modulo = (*self.balance * PENALTY_PERCENTAGE) % 100;
-        (escrow, modulo)
+        Player { pit_id, player_id, square_id: 0, balance: 0, escrow: 0 }
     }
 
     #[inline]
@@ -45,4 +33,4 @@ impl PlayerAssert of AssertTrait {
     fn assert_valid_balance(self: Player) {
         assert(self.balance > 0, errors::INSUFFICIENT_BALANCE);
     }
-} 
+}
