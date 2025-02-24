@@ -16,7 +16,14 @@ pub impl PlayerImpl of PlayerTrait {
             player_id,
             square_id: 0,
             balance: 0,
+            locked_balance: 0,
         }
+    }
+
+    fn get_escrow_and_modulo(self: @Player) -> (u128, u128) {
+        let escrow = (*self.balance * PENALTY_PERCENTAGE) / 100;
+        let modulo = (*self.balance * PENALTY_PERCENTAGE) % 100;
+        (escrow, modulo)
     }
 
     #[inline]

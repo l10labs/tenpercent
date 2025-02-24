@@ -18,3 +18,8 @@ pub mod components {
 pub mod systems {
     pub mod actions;
 }
+
+pub mod tests {
+    pub mod test_actions;
+    pub mod setup;
+}

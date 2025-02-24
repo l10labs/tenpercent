@@ -1,6 +1,6 @@
 // define the interface
 #[starknet::interface]
-trait IActions<TState> {
+pub trait IActions<TState> {
     fn join_pit(ref self: TState, pit_id: u32, token_amount: u128);
     fn move(ref self: TState, pit_id: u32, square_id: u8);
     fn buy_tokens(ref self: TState, pit_id: u32);

@@ -18,6 +18,7 @@ pub impl PitImpl of PitTrait {
             round_number: 1,
             is_active: true,
             status: PitStatus::Active,
+            modulo_pool: 0,
         }
     }
 

@@ -9,6 +9,7 @@ pub struct Pit {
     pub round_number: u32,
     pub is_active: bool,
     pub status: PitStatus,
+    pub modulo_pool: u128,
 }
 
 #[derive(Serde, Copy, Drop, Introspect, PartialEq)]
@@ -27,6 +28,7 @@ pub struct Player {
     pub player_id: ContractAddress,
     pub square_id: u8,
     pub balance: u128,
+    pub locked_balance: u128,
 }
 
 #[derive(Copy, Drop, Serde)]
