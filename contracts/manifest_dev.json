@@ -1312,8 +1312,8 @@
   },
   "contracts": [
     {
-      "address": "0x6439d790e1f2c10e96edb287198475685d9653fb13b11ebcd8de68104550bf0",
-      "class_hash": "0x3e7148d82253acdc4047357df3bbca712873a54585b2b4990f5087aec5346a4",
+      "address": "0x77a7f7a8182b7434859a07180c81155f808a7045745cd669688f96e312b53b3",
+      "class_hash": "0x43e3e1a0dd40e919820b9225937bfe537a8fa00721037e00a6c5235dbf61fd6",
       "abi": [
         {
           "type": "impl",
@@ -1383,11 +1383,15 @@
           "items": [
             {
               "type": "function",
-              "name": "join_game",
+              "name": "join_pit",
               "inputs": [
                 {
                   "name": "pit_id",
                   "type": "core::integer::u32"
+                },
+                {
+                  "name": "token_amount",
+                  "type": "core::integer::u128"
                 }
               ],
               "outputs": [],
@@ -1404,6 +1408,18 @@
                 {
                   "name": "square_id",
                   "type": "core::integer::u8"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "buy_tokens",
+              "inputs": [
+                {
+                  "name": "pit_id",
+                  "type": "core::integer::u32"
                 }
               ],
               "outputs": [],
@@ -1537,6 +1553,11 @@
               "name": "square_id",
               "type": "core::integer::u8",
               "kind": "data"
+            },
+            {
+              "name": "token_amount",
+              "type": "core::integer::u128",
+              "kind": "data"
             }
           ]
         },
@@ -1596,6 +1617,23 @@
         },
         {
           "type": "event",
+          "name": "dojo_starter::components::bomb_game::BombGameComponent::MockTokensClaimed",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress",
+              "kind": "data"
+            },
+            {
+              "name": "amount",
+              "type": "core::integer::u128",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
           "name": "dojo_starter::components::bomb_game::BombGameComponent::Event",
           "kind": "enum",
           "variants": [
@@ -1617,6 +1655,11 @@
             {
               "name": "RoundCompleted",
               "type": "dojo_starter::components::bomb_game::BombGameComponent::RoundCompleted",
+              "kind": "nested"
+            },
+            {
+              "name": "MockTokensClaimed",
+              "type": "dojo_starter::components::bomb_game::BombGameComponent::MockTokensClaimed",
               "kind": "nested"
             }
           ]
@@ -1649,8 +1692,9 @@
       "selector": "0x7a1c71029f2d0b38e3ac89b09931d08b6e48417e079c289ff19a8698d0cba33",
       "systems": [
         "dojo_init",
-        "join_game",
+        "join_pit",
         "move",
+        "buy_tokens",
         "upgrade"
       ]
     }
@@ -1686,6 +1730,12 @@
       "class_hash": "0x48c8c725fc8b12fb50dc34ffdbde45525ff0eacefad32a2789560bf473d2d40",
       "tag": "dojo_starter-Square",
       "selector": "0x6fec6fd9f31883ff22e6e3d543f3e4c5a23eb42f13be0bfb6a4bffda8e65dbf"
+    },
+    {
+      "members": [],
+      "class_hash": "0x41ff000fe72f274fdb91d99bec4bf6fe77603003eb7c3cb8afb63e08bcc8ca3",
+      "tag": "dojo_starter-Token",
+      "selector": "0x6689405b60400ab79f63c9374160fa1d448f5ae4c6b4e96af9e9e7daf8cf98"
     }
   ],
   "events": [],

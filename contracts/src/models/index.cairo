@@ -56,4 +56,14 @@ pub struct PitQueue {
     #[key]
     pub pit_id: u32,
     pub next_square: u8,
+}
+
+#[derive(Copy, Drop, Serde)]
+#[dojo::model]
+pub struct Token {
+    #[key]
+    pub player: ContractAddress,
+    pub balance: u128,
+    pub moves_since_last_claim: u32,
+    pub has_claimed: bool,
 } 

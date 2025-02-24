@@ -1,8 +1,9 @@
 // define the interface
 #[starknet::interface]
 trait IActions<TState> {
-    fn join_game(ref self: TState, pit_id: u32);
+    fn join_pit(ref self: TState, pit_id: u32, token_amount: u128);
     fn move(ref self: TState, pit_id: u32, square_id: u8);
+    fn buy_tokens(ref self: TState, pit_id: u32);
 }
 
 // dojo decorator
@@ -38,9 +39,9 @@ pub mod actions {
 
     #[abi(embed_v0)]
     impl ActionsImpl of IActions<ContractState> {
-        fn join_game(ref self: ContractState, pit_id: u32) {
+        fn join_pit(ref self: ContractState, pit_id: u32, token_amount: u128) {
             let world = self.world_storage();
-            self.bomb_game.join_game(world, pit_id);
+            self.bomb_game.join_game(world, pit_id, token_amount);
         }
 
         fn move(ref self: ContractState, pit_id: u32, square_id: u8) {
@@ -49,6 +50,10 @@ pub mod actions {
             self.bomb_game.progress_round(world, pit_id);
         }
 
+        fn buy_tokens(ref self: ContractState, pit_id: u32) {
+            let world = self.world_storage();
+            self.bomb_game.claim_mock_tokens(world, pit_id);
+        }
     }
 
     #[generate_trait]

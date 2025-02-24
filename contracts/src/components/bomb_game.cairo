@@ -9,8 +9,10 @@ pub mod BombGameComponent {
     use crate::models::player::{Player, PlayerTrait};
     use crate::models::square::{Square, SquareTrait, SquareAssert};
     use crate::models::round_result::{RoundResult, RoundResultTrait};
-    use crate::models::pit_order::{PitQueue, PitOrderTrait};
+    use crate::models::pit_queue::{PitQueue, PitQueueTrait};
     use crate::store::{Store, StoreTrait};
+    use crate::models::token::{Token, TokenTrait};
+
     use crate::constants::NUM_SQUARES;
 
     // Starknet imports
@@ -23,6 +25,7 @@ pub mod BombGameComponent {
         pub const SAME_SQUARE: felt252 = 'Game: already in square';
         pub const BOMB_EXPLODED: felt252 = 'Game: bomb has exploded';
         pub const PLAYER_ALREADY_IN_PIT: felt252 = 'Game: player already in pit';
+        pub const INSUFFICIENT_BALANCE: felt252 = 'Game: insufficient balance';
     }
 
     // Storage
@@ -37,6 +40,7 @@ pub mod BombGameComponent {
         PlayerJoined: PlayerJoined,
         PlayerMoved: PlayerMoved,
         RoundCompleted: RoundCompleted,
+        MockTokensClaimed: MockTokensClaimed,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -50,6 +54,7 @@ pub mod BombGameComponent {
         pit_id: u32,
         player: ContractAddress,
         square_id: u8,
+        token_amount: u128,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -66,6 +71,12 @@ pub mod BombGameComponent {
         round: u32,
         losing_square: u8,
         round_reward: u128,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct MockTokensClaimed {
+        player: ContractAddress,
+        amount: u128,
     }
 
     #[generate_trait]
@@ -85,33 +96,56 @@ pub mod BombGameComponent {
                 store.set_square(square);
             };
 
-            // Initialize pit order
-            let pit_order = PitOrderTrait::new(pit_id);
-            store.set_pit_order(pit_order);
+            // Initialize pit queue
+            let pit_queue = PitQueueTrait::new(pit_id);
+            store.set_pit_queue(pit_queue);
 
             self.emit(PitCreated { pit_id, creator: caller });
         }
 
-        fn join_game(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32) {
+        fn claim_mock_tokens(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32) {
+            let mut store: Store = StoreTrait::new(world);
+            let caller = get_caller_address();
+
+            // Claim tokens if not claimed
+            let mut token = store.get_token(caller);
+            token.claim_tokens();
+            store.set_token(token);
+
+            // Emit event
+            self.emit(MockTokensClaimed { 
+                player: caller, 
+                amount: token.balance, 
+            });
+        }
+
+        fn join_game(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32, token_amount: u128) {
             let mut store: Store = StoreTrait::new(world);
             let caller = get_caller_address();
 
             // check if player is already in the pit
             let mut player = store.get_player(pit_id, caller);
             assert(player.balance == 0, errors::PLAYER_ALREADY_IN_PIT);
+
+            // check if player has enough balance
+            let mut player_tokens = store.get_token(caller);
+            assert(player_tokens.balance >= token_amount, errors::INSUFFICIENT_BALANCE);
+
+            // deduct token amount from player
+            player_tokens.balance -= token_amount;
+            store.set_token(player_tokens);
+
+            // add balance to player
+            player.balance += token_amount;
             
             // use only the first pit_id = 0
             let mut pit = store.get_pit(pit_id);
             assert(pit.is_active, errors::PIT_NOT_ACTIVE);
 
             // Get and update pit order to determine starting square
-            let mut pit_order = store.get_pit_order(pit_id);
-            let starting_square = pit_order.get_and_increment_next_square();
-            store.set_pit_order(pit_order);
-
-            // Create new player in assigned square
-            let mut player = PlayerTrait::new(pit_id, caller);
-            player.square_id = starting_square;
+            let mut pit_queue = store.get_pit_queue(pit_id);
+            let starting_square = pit_queue.get_and_increment_next_square();
+            store.set_pit_queue(pit_queue);
 
             // Update assigned square balance
             let mut square = store.get_square(pit_id, starting_square);
@@ -121,7 +155,7 @@ pub mod BombGameComponent {
             store.set_player(player);
             store.set_square(square);
 
-            self.emit(PlayerJoined { pit_id, player: caller, square_id: starting_square });
+            self.emit(PlayerJoined { pit_id, player: caller, square_id: starting_square, token_amount });
         }
 
         fn move_to_square(ref self: ComponentState<T>, world: WorldStorage, pit_id: u32, square_id: u8) {
@@ -147,6 +181,11 @@ pub mod BombGameComponent {
             player.square_id = square_id;
             store.set_player(player);
 
+            // Update token moves counter
+            let mut token = store.get_token(caller);
+            token.increment_moves();
+            store.set_token(token);
+
             // Emit event
             self.emit(PlayerMoved { pit_id, player: caller, from_square: player.square_id, to_square: square_id });
         }
@@ -165,5 +204,8 @@ pub mod BombGameComponent {
                 store.set_pit(pit);
             }
         }
+
+
+
     }
 }

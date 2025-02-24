@@ -6,7 +6,7 @@ pub mod errors {
 }
 
 #[generate_trait]
-pub impl PitOrderImpl of PitOrderTrait {
+pub impl PitQueueImpl of PitQueueTrait {
     #[inline]
     fn new(pit_id: u32) -> PitQueue {
         PitQueue {
@@ -25,7 +25,7 @@ pub impl PitOrderImpl of PitOrderTrait {
 }
 
 #[generate_trait]
-impl PitOrderAssert of AssertTrait {
+impl PitQueueAssert of AssertTrait {
     #[inline]
     fn assert_valid_next_square(self: @PitQueue) {
         assert(*self.next_square < NUM_SQUARES, errors::INVALID_NEXT_SQUARE);

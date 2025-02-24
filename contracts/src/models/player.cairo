@@ -1,5 +1,5 @@
 pub use crate::models::index::Player;
-use crate::constants::{INITIAL_BALANCE, PENALTY_PERCENTAGE};
+use crate::constants::PENALTY_PERCENTAGE;
 use starknet::ContractAddress;
 
 pub mod errors {
@@ -15,7 +15,7 @@ pub impl PlayerImpl of PlayerTrait {
             pit_id,
             player_id,
             square_id: 0,
-            balance: INITIAL_BALANCE,
+            balance: 0,
         }
     }
 

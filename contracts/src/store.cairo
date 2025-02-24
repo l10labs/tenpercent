@@ -2,7 +2,7 @@ use dojo::world::WorldStorage;
 use dojo::model::ModelStorage;
 use starknet::ContractAddress;
 
-use crate::models::index::{Pit, Player, Square, RoundResult, PitQueue};
+use crate::models::index::{Pit, Player, Square, RoundResult, PitQueue, Token};
 
 #[derive(Copy, Drop)]
 pub struct Store {
@@ -29,12 +29,12 @@ pub impl StoreImpl of StoreTrait {
 
     // PitQueue related functions
     #[inline]
-    fn set_pit_order(ref self: Store, pit_order: PitQueue) {
-        self.world.write_model(@pit_order)
+    fn set_pit_queue(ref self: Store, pit_queue: PitQueue) {
+        self.world.write_model(@pit_queue)
     }
 
     #[inline]
-    fn get_pit_order(self: Store, pit_id: u32) -> PitQueue {
+    fn get_pit_queue(self: Store, pit_id: u32) -> PitQueue {
         self.world.read_model(pit_id)
     }
 
@@ -69,5 +69,16 @@ pub impl StoreImpl of StoreTrait {
     #[inline]
     fn get_round_result(self: Store, pit_id: u32, round: u32) -> RoundResult {
         self.world.read_model((pit_id, round))
+    }
+
+    // Token related functions
+    #[inline]
+    fn set_token(ref self: Store, token: Token) {
+        self.world.write_model(@token)
+    }
+
+    #[inline]
+    fn get_token(self: Store, address: ContractAddress) -> Token {
+        self.world.read_model(address)
     }
 }
