@@ -9,7 +9,7 @@ pub mod BombGameComponent {
     use crate::models::player::{Player, PlayerTrait};
     use crate::models::square::{Square, SquareTrait, SquareAssert};
     use crate::models::round_result::{RoundResult, RoundResultTrait};
-    use crate::models::pit_order::{PitOrder, PitOrderTrait};
+    use crate::models::pit_order::{PitQueue, PitOrderTrait};
     use crate::store::{Store, StoreTrait};
     use crate::constants::NUM_SQUARES;
 

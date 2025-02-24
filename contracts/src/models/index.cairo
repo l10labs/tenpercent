@@ -52,7 +52,7 @@ pub struct RoundResult {
 
 #[derive(Copy, Drop, Serde)]
 #[dojo::model]
-pub struct PitOrder {
+pub struct PitQueue {
     #[key]
     pub pit_id: u32,
     pub next_square: u8,
