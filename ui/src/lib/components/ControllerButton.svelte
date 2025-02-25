@@ -67,7 +67,7 @@
 
 {#if !isControllerConnected && controllerUsername}
 	<div class="flex items-center gap-2">
-		<span class="text-sm">{controllerUsername}</span>
+		<span class="font-small">{controllerUsername}</span>
 		<button onclick={disconnect} class="rounded border px-3 py-1 text-sm hover:bg-gray-50">
 			Disconnect
 		</button>
