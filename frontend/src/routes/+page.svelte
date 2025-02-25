@@ -3,9 +3,11 @@
 	import { browser } from '$app/environment';
 	import type { Player, Square, GameResult, GameResponse, SerializableSquare } from '$lib/types';
 	import { INITIAL_BALANCE } from '$lib/types';
-	import { tweened } from 'svelte/motion';
-	import { cubicOut } from 'svelte/easing';
 	import { starknet_join_game, starknet_buy_tokens } from './starknet_caller';
+	import ControllerButton from '$lib/components/ControllerButton.svelte';
+	import { goto } from '$app/navigation';
+
+	import controller from '../lib/components/controller';
 
 	// Array of fun emojis that could represent players
 	const avatarEmojis = [
@@ -184,6 +186,10 @@
 		}, 5000);
 	}
 
+	onMount(() => {
+		goto('/home');
+	});
+
 	onMount(async () => {
 		if (browser) {
 			playerName = localStorage.getItem('playerName') || '';
@@ -337,7 +343,7 @@
 
 <main class="container mx-auto max-w-3xl px-4 py-8">
 	{#if isJoined}
-		<div class="fixed left-0 right-0 top-0 z-50 bg-white shadow-md">
+		<div class="fixed top-0 right-0 left-0 z-50 bg-white shadow-md">
 			<div class="container mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-2">
 				<div class="flex items-center gap-2">
 					<div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-2xl">
@@ -346,13 +352,16 @@
 					<span class="font-medium">{playerName}</span>
 				</div>
 				<div class="text-xl font-bold text-gray-800">Ten Percent</div>
-				<button
-					on:click={handleLeave}
-					class="flex items-center gap-2 rounded bg-red-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-600"
-				>
-					<span>Leave Game</span>
-					<span class="text-lg">👋</span>
-				</button>
+				<div class="flex gap-2">
+					<ControllerButton />
+					<button
+						on:click={handleLeave}
+						class="flex items-center gap-2 rounded bg-red-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-600"
+					>
+						<span>Leave Game</span>
+						<span class="text-lg">👋</span>
+					</button>
+				</div>
 			</div>
 		</div>
 		<div class="h-14"></div>
@@ -377,7 +386,7 @@
 					type="text"
 					bind:value={playerName}
 					placeholder="Enter your name"
-					class="w-full rounded-lg border-2 px-4 py-2 text-center text-base shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full rounded-lg border-2 px-4 py-2 text-center text-base shadow-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
 				/>
 				<button
 					type="submit"

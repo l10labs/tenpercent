@@ -1,6 +1,7 @@
 import { Contract, RpcProvider } from "starknet";
-import Controller, { type SessionPolicies } from "@cartridge/controller";
-import manifest from '../../../contracts/manifest_dev.json';
+import Controller, { type SessionPolicies, type ControllerOptions } from "@cartridge/controller";
+
+import manifest from '../../../../contracts/manifest_dev.json';
 
 const rpcUrl = "https://api.cartridge.gg/x/squares2/katana";
 const providerKatanaDev = new RpcProvider({
@@ -14,17 +15,6 @@ let chain_id = await providerKatanaDev.getChainId();
 
 const policies: SessionPolicies = {}
 
-// const controller = new Controller(
-//     {
-//         defaultChainId: 'SN_MAINNET',
-//         chains: [
-//             {
-//                 rpcUrl: rpcUrl,
-//             }
-//         ]
-//     }
-// );
-
 let options: ControllerOptions = {
     policies,
     defaultChainId: chain_id,
@@ -34,3 +24,7 @@ let options: ControllerOptions = {
         }
     ]
 }
+
+const controller = new Controller(options);
+
+export default controller;
