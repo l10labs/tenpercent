@@ -30,3 +30,28 @@ export async function buyTokens(controller: Controller) {
         console.log(e);
     }
 }
+
+export async function joinPit(controller: Controller) {
+    if (!controller) {
+        console.log('no controller');
+        return;
+    };
+    let executeAccount = controller?.account;
+    if (!executeAccount) {
+        console.log('no execute account');
+        return;
+    };
+    try {
+        const result = await executeAccount?.execute([
+            {
+                contractAddress: contract_address,
+                entrypoint: "join_pit",
+                // joining with half the user's token balance
+                calldata: ['0x0', '0x2d79883d2000'],
+            },
+        ]);
+        console.log(result);
+    } catch (e) {
+        console.log(e);
+    }
+}

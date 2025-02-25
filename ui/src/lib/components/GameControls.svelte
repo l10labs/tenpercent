@@ -1,8 +1,13 @@
 <script lang="ts">
+	import { joinPit, controllerStatus } from '$lib/stores/controller_state.svelte';
 	let { showGrid } = $props();
 
-	function handleJoinGame() {
-		console.log('Join game clicked');
+	async function handleJoinGame() {
+		if (!controllerStatus.sharedController) {
+			console.log('no controller');
+			return;
+		}
+		await joinPit(controllerStatus.sharedController);
 	}
 </script>
 
@@ -14,7 +19,7 @@
 		class:opacity-100={showGrid}
 		style="transition-delay: 0ms"
 	>
-		Join Game
+		Join Pit
 	</button>
 	<button
 		disabled
@@ -23,6 +28,6 @@
 		class:opacity-100={showGrid}
 		style="transition-delay: 150ms"
 	>
-		Exit Game (Coming Soon)
+		Exit Pit (Coming Soon)
 	</button>
 </div>
