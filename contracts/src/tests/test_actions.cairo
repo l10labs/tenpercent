@@ -3,14 +3,37 @@ pub mod test_actions {
     use crate::tests::setup::setup;
     use crate::store::{Store, StoreTrait};
     use starknet::testing::{set_contract_address};
+    use starknet::ContractAddress;
 
-    use crate::constants::{
-        NUM_SQUARES, TOKENS_PER_CLAIM, MINIMUM_ENTRY_BALANCE, INITIAL_BOMB_COUNTER,
-        PENALTY_PERCENTAGE,
-    };
-
+    use crate::constants::{TOKENS_PER_CLAIM, MINIMUM_ENTRY_BALANCE, PENALTY_PERCENTAGE};
+    use crate::helpers::get_escrow_and_modulo;
 
     const ACTIVE_PIT_ID: u32 = 0;
+
+    fn p1() -> ContractAddress {
+        setup::OWNER()
+    }
+
+    fn p2() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER2'>()
+    }
+
+    fn p3() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER3'>()
+    }
+
+    fn p4() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER4'>()
+    }
+
+    fn p5() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER5'>()
+    }
+
+    fn p6() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER6'>()
+    }
+
 
     #[test]
     #[available_gas(300000000)]
@@ -64,6 +87,103 @@ pub mod test_actions {
         // Check token state
         let token = store.get_token(setup::OWNER());
         assert(token.balance == expected_player_token_balance, 'Wrong remaining balance');
+    }
+
+    #[test]
+    #[available_gas(300000000)]
+    fn test_6_players_join_pit() {
+        // [Setup]
+        let (world, systems) = setup::spawn_game();
+        let mut store: Store = StoreTrait::new(world);
+        let common_wager = MINIMUM_ENTRY_BALANCE;
+        let (common_escrow, common_modulo) = get_escrow_and_modulo(common_wager);
+        let common_pit_balance = common_wager - common_escrow;
+
+        let square_balance_for_a_and_b = common_pit_balance * 2;
+        let square_escrow_for_a_and_b = common_escrow * 2;
+        let square_balance_for_c_and_d = common_pit_balance;
+        let square_escrow_for_c_and_d = common_escrow;
+
+        let p1_square_id = 0;
+        let p2_square_id = 1;
+        let p3_square_id = 2;
+        let p4_square_id = 3;
+        let p5_square_id = 0;
+        let p6_square_id = 1;
+
+        // [Action]
+        set_contract_address(p1());
+        systems.actions.buy_tokens(ACTIVE_PIT_ID);
+        systems.actions.join_pit(ACTIVE_PIT_ID, common_wager);
+
+        set_contract_address(p2());
+        systems.actions.buy_tokens(ACTIVE_PIT_ID);
+        systems.actions.join_pit(ACTIVE_PIT_ID, common_wager);
+
+        set_contract_address(p3());
+        systems.actions.buy_tokens(ACTIVE_PIT_ID);
+        systems.actions.join_pit(ACTIVE_PIT_ID, common_wager);
+
+        set_contract_address(p4());
+        systems.actions.buy_tokens(ACTIVE_PIT_ID);
+        systems.actions.join_pit(ACTIVE_PIT_ID, common_wager);
+
+        set_contract_address(p5());
+        systems.actions.buy_tokens(ACTIVE_PIT_ID);
+        systems.actions.join_pit(ACTIVE_PIT_ID, common_wager);
+
+        set_contract_address(p6());
+        systems.actions.buy_tokens(ACTIVE_PIT_ID);
+        systems.actions.join_pit(ACTIVE_PIT_ID, common_wager);
+
+        // [Verification]
+        let player = store.get_player(ACTIVE_PIT_ID, p1());
+        assert(player.square_id == p1_square_id, 'Invalid square id');
+        assert(player.balance == common_pit_balance, 'Incorrect pit balance');
+        assert(player.escrow == common_escrow, 'Incorrect escrow');
+        let square = store.get_square(ACTIVE_PIT_ID, p1_square_id);
+        assert(square.total_balance == square_balance_for_a_and_b, 'Incorrect square balance');
+        assert(square.total_escrow == square_escrow_for_a_and_b, 'Incorrect square escrow');
+
+        let player = store.get_player(ACTIVE_PIT_ID, p2());
+        assert(player.square_id == p2_square_id, 'Invalid square id');
+        assert(player.balance == common_pit_balance, 'Incorrect pit balance');
+        assert(player.escrow == common_escrow, 'Incorrect escrow');
+        let square = store.get_square(ACTIVE_PIT_ID, p2_square_id);
+        assert(square.total_balance == square_balance_for_a_and_b, 'Incorrect square balance');
+        assert(square.total_escrow == square_escrow_for_a_and_b, 'Incorrect square escrow');
+
+        let player = store.get_player(ACTIVE_PIT_ID, p3());
+        assert(player.square_id == p3_square_id, 'Invalid square id');
+        assert(player.balance == common_pit_balance, 'Incorrect pit balance');
+        assert(player.escrow == common_escrow, 'Incorrect escrow');
+        let square = store.get_square(ACTIVE_PIT_ID, p3_square_id);
+        assert(square.total_balance == square_balance_for_c_and_d, 'Incorrect square balance');
+        assert(square.total_escrow == square_escrow_for_c_and_d, 'Incorrect square escrow');
+
+        let player = store.get_player(ACTIVE_PIT_ID, p4());
+        assert(player.square_id == p4_square_id, 'Invalid square id');
+        assert(player.balance == common_pit_balance, 'Incorrect pit balance');
+        assert(player.escrow == common_escrow, 'Incorrect escrow');
+        let square = store.get_square(ACTIVE_PIT_ID, p4_square_id);
+        assert(square.total_balance == square_balance_for_c_and_d, 'Incorrect square balance');
+        assert(square.total_escrow == square_escrow_for_c_and_d, 'Incorrect square escrow');
+
+        let player = store.get_player(ACTIVE_PIT_ID, p5());
+        assert(player.square_id == p5_square_id, 'Invalid square id');
+        assert(player.balance == common_pit_balance, 'Incorrect pit balance');
+        assert(player.escrow == common_escrow, 'Incorrect escrow');
+        let square = store.get_square(ACTIVE_PIT_ID, p5_square_id);
+        assert(square.total_balance == square_balance_for_a_and_b, 'Incorrect square balance');
+        assert(square.total_escrow == square_escrow_for_a_and_b, 'Incorrect square escrow');
+
+        let player = store.get_player(ACTIVE_PIT_ID, p6());
+        assert(player.square_id == p6_square_id, 'Invalid square id');
+        assert(player.balance == common_pit_balance, 'Incorrect pit balance');
+        assert(player.escrow == common_escrow, 'Incorrect escrow');
+        let square = store.get_square(ACTIVE_PIT_ID, p6_square_id);
+        assert(square.total_balance == square_balance_for_a_and_b, 'Incorrect square balance');
+        assert(square.total_escrow == square_escrow_for_a_and_b, 'Incorrect square escrow');
     }
 
     #[test]
