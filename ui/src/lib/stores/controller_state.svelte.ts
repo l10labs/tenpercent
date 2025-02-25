@@ -55,3 +55,28 @@ export async function joinPit(controller: Controller) {
         console.log(e);
     }
 }
+
+export async function moveSquare(controller: Controller, square_id: number) {
+    if (!controller) {
+        console.log('no controller');
+        return;
+    };
+    let executeAccount = controller?.account;
+    if (!executeAccount) {
+        console.log('no execute account');
+        return;
+    };
+    try {
+        const result = await executeAccount?.execute([
+            {
+                contractAddress: contract_address,
+                entrypoint: "move",
+                // joining with half the user's token balance
+                calldata: ['0x0', square_id.toString()],
+            },
+        ]);
+        console.log(result);
+    } catch (e) {
+        console.log(e);
+    }
+}
