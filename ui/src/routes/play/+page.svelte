@@ -9,14 +9,7 @@
 	let showGrid = $state(false);
 	let squareBalances = $state<number[]>([0, 0, 0, 0]);
 
-	// Derived states for individual balances
-	let s1_balance = $derived(squareBalances[0]);
-	let s2_balance = $derived(squareBalances[1]);
-	let s3_balance = $derived(squareBalances[2]);
-	let s4_balance = $derived(squareBalances[3]);
-
 	let intervalId: number;
-	let test_counter = 0;
 
 	$effect(() => {
 		// Clear any existing interval when effect reruns
