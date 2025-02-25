@@ -7,7 +7,7 @@
 	<div class="mx-auto max-w-7xl px-4">
 		<div class="flex h-16 items-center justify-between">
 			<div class="flex items-center gap-6">
-				<span class="font-medium">TenPercent.fun</span>
+				<a href="/" class="font-medium hover:text-gray-600">TenPercent.fun</a>
 			</div>
 			<div>
 				<ControllerButton />
