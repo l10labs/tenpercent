@@ -1,50 +1,63 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Contract, RpcProvider } from 'starknet';
+	import { RpcProvider } from 'starknet';
 	import Controller, { type SessionPolicies, type ControllerOptions } from '@cartridge/controller';
-	import manifest from '../../../../contracts/manifest_dev.json';
 	import { controllerStatus } from '$lib/stores/controller_state.svelte';
 
-	const rpcUrl = 'https://api.cartridge.gg/x/squares2/katana';
+	const rpcUrl = 'https://api.cartridge.gg/x/tenpercentfun/katana';
 	const providerKatanaDev = new RpcProvider({
 		nodeUrl: rpcUrl
 	});
 
-	let contract_address = manifest.contracts[0].address;
-	let mainContractClass: any;
-	let mainContract: Contract;
-
-	let chain_id = '0x57505f5351554152455332';
+	// let chain_id = '0x57505f5351554152455332';
+	// let chain_id = '0x57505f54454e50455243454e5446554e';
 	const policies: SessionPolicies = {};
-	let options = {
-		policies,
-		defaultChainId: chain_id,
-		chains: [
-			{
-				rpcUrl: rpcUrl
-			}
-		]
-	};
-	let controller = new Controller(options);
+
+	let controller: Controller | undefined;
 
 	let controllerUsername: string | undefined = $state('');
 	let balance: number = $state(0);
 
 	onMount(async () => {
+		let chain_id = await providerKatanaDev.getChainId();
+		console.log(chain_id);
+		let options = await getOptions();
+		controller = new Controller(options);
 		if (await controller.probe()) {
 			await connect();
 			controllerUsername = await controller.username();
+			controllerStatus.sharedController = controller;
 			controllerStatus.is_connected = true;
 		}
 	});
 
+	async function getOptions(): Promise<ControllerOptions> {
+		let chain_id = await providerKatanaDev.getChainId();
+		console.log(chain_id);
+		let options = {
+			policies,
+			defaultChainId: chain_id,
+			chains: [
+				{
+					rpcUrl: rpcUrl
+				}
+			]
+		};
+		return options;
+	}
+
 	async function connect() {
+		if (!controller) {
+			console.log('no controller');
+			return;
+		}
 		try {
 			const res = await controller.connect();
 			if (res) {
 				controllerUsername = await controller.username();
 				console.log(controllerUsername);
 				console.log('controller logged in i think');
+				controllerStatus.sharedController = controller;
 				controllerStatus.is_connected = true;
 			}
 		} catch (e) {
@@ -53,9 +66,14 @@
 	}
 
 	async function disconnect() {
+		if (!controller) {
+			console.log('no controller');
+			return;
+		}
 		await controller.disconnect();
 		controllerUsername = undefined;
 		controllerStatus.is_connected = false;
+		controllerStatus.sharedController = undefined;
 	}
 </script>
 

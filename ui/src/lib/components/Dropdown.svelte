@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { buyTokens, controllerStatus } from '$lib/stores/controller_state.svelte';
 
 	let isOpen = $state(false);
 	let dropdownRef: HTMLDivElement;
@@ -10,6 +11,15 @@
 
 	function closeDropdown() {
 		isOpen = false;
+	}
+
+	async function handleBuyTokens() {
+		if (!controllerStatus.sharedController) {
+			console.log('no controller');
+			return;
+		}
+		await buyTokens(controllerStatus.sharedController);
+		closeDropdown();
 	}
 
 	onMount(() => {
@@ -38,7 +48,7 @@
 				>Play</a
 			>
 			<button
-				onclick={closeDropdown}
+				onclick={handleBuyTokens}
 				class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
 			>
 				Buy Tokens
