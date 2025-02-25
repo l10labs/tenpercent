@@ -34,6 +34,7 @@
 		]
 	},
 	"dependencies": {
+		"@cartridge/controller": "^0.6.0",
 		"starknet": "^6.23.1"
 	}
 }

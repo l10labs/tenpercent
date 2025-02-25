@@ -113,12 +113,12 @@ export class Game {
 				roundNumber: this.roundNumber,
 				penaltyAmount: totalPenalty,
 				affectedPlayers: {
-					losing: losingPlayers.map(p => ({ 
-						name: p.name, 
+					losing: losingPlayers.map(p => ({
+						name: p.name,
 						penalty: p.balance * 0.1 // Keep exact penalty amount
 					})),
-					safe: safePlayers.map(p => ({ 
-						name: p.name, 
+					safe: safePlayers.map(p => ({
+						name: p.name,
 						reward: totalPenalty * (p.balance / totalSafeBalance) // Keep exact reward amount
 					}))
 				}
@@ -126,7 +126,7 @@ export class Game {
 
 			// Store current result before starting new round
 			this.previousRoundResult = result;
-			
+
 			// Start new round - this will reset the bomb counter and increment round number
 			this.startNewRound();
 
