@@ -1,16 +1,11 @@
-import manifest from '../../../../contracts/manifest_release.json';
-import { Contract } from 'starknet';
 import Controller from '@cartridge/controller';
+import { manual_contract_address_from_sozo_inspect } from '$lib/config';
 
 let sharedController: undefined | Controller;
 export const controllerStatus = $state({ is_connected: false, sharedController: sharedController });
 
-let contract_address = manifest.contracts[0].address;
-let manual_from_sozo_inspect = '0x00ef660ffdd25c054442280efdb20505035219d8be079eff2e8baaed71f28554';
+let contract_address = manual_contract_address_from_sozo_inspect;
 console.log(contract_address);
-console.log(manual_from_sozo_inspect);
-let mainContractClass: any;
-let mainContract: Contract;
 
 export async function buyTokens(controller: Controller) {
     if (!controller) {
@@ -25,7 +20,7 @@ export async function buyTokens(controller: Controller) {
     try {
         const result = await executeAccount?.execute([
             {
-                contractAddress: manual_from_sozo_inspect,
+                contractAddress: contract_address,
                 entrypoint: "buy_tokens",
                 calldata: ['0x0'],
             },

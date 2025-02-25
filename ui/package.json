@@ -33,7 +33,9 @@
 		]
 	},
 	"dependencies": {
+		"@apollo/client": "^3.13.1",
 		"@cartridge/controller": "^0.6.0",
+		"graphql": "^16.10.0",
 		"starknet": "^6.23.1"
 	}
 }
