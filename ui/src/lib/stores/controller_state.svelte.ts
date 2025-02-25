@@ -56,7 +56,7 @@ export async function joinPit(controller: Controller) {
     }
 }
 
-export async function moveSquare(controller: Controller, square_id: number) {
+export async function moveSquare(controller: Controller, square_id: string) {
     if (!controller) {
         console.log('no controller');
         return;
@@ -72,7 +72,7 @@ export async function moveSquare(controller: Controller, square_id: number) {
                 contractAddress: contract_address,
                 entrypoint: "move",
                 // joining with half the user's token balance
-                calldata: ['0x0', square_id.toString()],
+                calldata: ['0x0', square_id],
             },
         ]);
         console.log(result);

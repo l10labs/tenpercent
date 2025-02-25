@@ -50,17 +50,6 @@
 				`balance: ${balance}, balance2: ${balance2}, balance3: ${balance3}, balance4: ${balance4}`
 			);
 			parse_data(result.data);
-			// const squareNodes = get_square_balances(result);
-			// log_squares_data(squareNodes);
-
-			// // Convert SquareNode array to number array using total_balance
-			// squareNodes.forEach((node) => {
-			// 	let graphql_balance = Number(Number(node.total_balance) / TOKEN_BASE_DECIMALS);
-			// 	let graphql_escrow = Number(Number(node.total_escrow) / TOKEN_BASE_DECIMALS);
-			// 	console.log(`graphql_balance: ${graphql_balance}, graphql_escrow: ${graphql_escrow}`);
-			// 	squareBalances[node.square_id] = graphql_balance + graphql_escrow;
-			// 	console.log(`squareBalances: ${squareBalances}`);
-			// });
 		} catch (error) {
 			console.error('Query error:', error);
 		}
@@ -89,7 +78,7 @@
 		}).format(amount);
 	}
 
-	async function handleMoveSquare(square_id: number) {
+	async function handleMoveSquare(square_id: string) {
 		if (!controllerStatus.sharedController) {
 			console.log('no controller');
 			return;
@@ -101,7 +90,7 @@
 <div class="w-full max-w-[480px] px-4 sm:px-0">
 	<div class="grid grid-cols-2 gap-3 sm:gap-6">
 		<button
-			onclick={() => handleMoveSquare(0)}
+			onclick={() => handleMoveSquare('0x0')}
 			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
 			class:scale-100={showGrid}
 			class:opacity-100={showGrid}
@@ -110,7 +99,7 @@
 			<span class="text-base font-medium sm:text-xl">{formatDollar(s0_balance)}</span>
 		</button>
 		<button
-			onclick={() => handleMoveSquare(1)}
+			onclick={() => handleMoveSquare('0x1')}
 			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
 			class:scale-100={showGrid}
 			class:opacity-100={showGrid}
@@ -119,7 +108,7 @@
 			<span class="text-base font-medium sm:text-xl">{formatDollar(s1_balance)}</span>
 		</button>
 		<button
-			onclick={() => handleMoveSquare(2)}
+			onclick={() => handleMoveSquare('0x2')}
 			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
 			class:scale-100={showGrid}
 			class:opacity-100={showGrid}
@@ -128,7 +117,7 @@
 			<span class="text-base font-medium sm:text-xl">{formatDollar(s2_balance)}</span>
 		</button>
 		<button
-			onclick={() => handleMoveSquare(3)}
+			onclick={() => handleMoveSquare('0x3')}
 			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
 			class:scale-100={showGrid}
 			class:opacity-100={showGrid}

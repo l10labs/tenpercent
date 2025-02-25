@@ -29,8 +29,8 @@
 						description: 'Join the pit and start the game. Once in the pit, theres no going out.'
 					},
 					{
-						name: 'Move Square',
-						entrypoint: 'move_square',
+						name: 'Move',
+						entrypoint: 'move',
 						description: 'Move your square to a new position.'
 					}
 				]
