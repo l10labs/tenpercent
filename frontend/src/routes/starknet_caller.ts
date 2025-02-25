@@ -1,4 +1,4 @@
-import { katana_account, actions_contract_instance as actions_contract } from '$lib/client/starknet';
+import { katana_account, actions_contract } from '$lib/client/starknet';
 
 export async function starknet_buy_tokens(): Promise<{ success: boolean; message: string }> {
     try {
