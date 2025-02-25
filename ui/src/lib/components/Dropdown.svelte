@@ -47,9 +47,6 @@
 			<a href="/play" onclick={closeDropdown} class="block px-4 py-2 text-sm hover:bg-gray-50"
 				>Play</a
 			>
-			<a href="/graphql" onclick={closeDropdown} class="block px-4 py-2 text-sm hover:bg-gray-50"
-				>GraphQL</a
-			>
 			<button
 				onclick={handleBuyTokens}
 				class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
