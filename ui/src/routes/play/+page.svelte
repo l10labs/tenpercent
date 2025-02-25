@@ -2,6 +2,7 @@
 	import GameGrid from '$lib/components/GameGrid.svelte';
 	import { onMount } from 'svelte';
 	import { controllerStatus } from '$lib/stores/controller_state.svelte';
+	import BuyTokens from '$lib/components/BuyTokens.svelte';
 
 	let showGrid = $state(false);
 

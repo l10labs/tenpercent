@@ -28,6 +28,7 @@
 	let controller = new Controller(options);
 
 	let controllerUsername: string | undefined = $state('');
+	let balance: number = $state(0);
 
 	onMount(async () => {
 		if (await controller.probe()) {
@@ -59,8 +60,9 @@
 </script>
 
 {#if controllerStatus.is_connected && controllerUsername}
-	<div class="flex items-center gap-2">
-		<span class="font-small">{controllerUsername}</span>
+	<div class="flex items-center gap-4">
+		<span class="text-sm">{controllerUsername}</span>
+		<span class="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium">{balance} tokens</span>
 		<button onclick={disconnect} class="rounded border px-3 py-1 text-sm hover:bg-gray-50">
 			Disconnect
 		</button>
