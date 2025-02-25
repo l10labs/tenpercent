@@ -9,6 +9,8 @@
 	let query_data: any;
 	let squareBalances = $state([0, 0, 0, 0]);
 	let intervalId: number;
+	let selectedSquare = $state<string | null>(null);
+	let animatingSquare = $state<string | null>(null);
 
 	let s0_balance = $derived(squareBalances[0]);
 	let s1_balance = $derived(squareBalances[1]);
@@ -25,7 +27,7 @@
 		if (controllerStatus.is_connected) {
 			intervalId = setInterval(async () => {
 				await queryBalances();
-			}, 2000);
+			}, 500);
 
 			// Cleanup function
 			return () => {
@@ -83,47 +85,52 @@
 			console.log('no controller');
 			return;
 		}
+		selectedSquare = square_id;
+		animatingSquare = square_id;
+		setTimeout(() => {
+			animatingSquare = null;
+		}, 300); // Reset animation after 300ms
 		await moveSquare(controllerStatus.sharedController, square_id);
 	}
 </script>
 
-<div class="w-full max-w-[480px] px-4 sm:px-0">
-	<div class="grid grid-cols-2 gap-3 sm:gap-6">
-		<button
-			onclick={() => handleMoveSquare('0x0')}
-			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
-			class:scale-100={showGrid}
-			class:opacity-100={showGrid}
-			style="transition-delay: 300ms"
-		>
-			<span class="text-base font-medium sm:text-xl">{formatDollar(s0_balance)}</span>
-		</button>
-		<button
-			onclick={() => handleMoveSquare('0x1')}
-			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
-			class:scale-100={showGrid}
-			class:opacity-100={showGrid}
-			style="transition-delay: 450ms"
-		>
-			<span class="text-base font-medium sm:text-xl">{formatDollar(s1_balance)}</span>
-		</button>
-		<button
-			onclick={() => handleMoveSquare('0x2')}
-			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
-			class:scale-100={showGrid}
-			class:opacity-100={showGrid}
-			style="transition-delay: 600ms"
-		>
-			<span class="text-base font-medium sm:text-xl">{formatDollar(s2_balance)}</span>
-		</button>
-		<button
-			onclick={() => handleMoveSquare('0x3')}
-			class="flex aspect-square w-full max-w-[232px] scale-0 items-center justify-center rounded border border-gray-800 opacity-0 transition-all duration-500 hover:bg-gray-50"
-			class:scale-100={showGrid}
-			class:opacity-100={showGrid}
-			style="transition-delay: 750ms"
-		>
-			<span class="text-base font-medium sm:text-xl">{formatDollar(s3_balance)}</span>
-		</button>
+<div class="xs:px-3 w-full max-w-[480px] px-2 sm:px-4">
+	<div class="xs:gap-3 grid grid-cols-2 gap-2 sm:gap-4 md:gap-6">
+		{#each Array(4) as _, i}
+			<button
+				onclick={() => handleMoveSquare(`0x${i}`)}
+				class="group relative flex aspect-square w-full max-w-[232px] items-center justify-center rounded border bg-white transition-all duration-300 hover:bg-blue-50
+					{showGrid ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}
+					{selectedSquare === `0x${i}`
+					? 'border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-200'
+					: 'border-gray-800'}
+					{animatingSquare === `0x${i}` ? 'rotate-3 scale-110' : ''}"
+				style="transition-delay: {300 + i * 150}ms"
+			>
+				<!-- Balance display with animation -->
+				<span
+					class="xs:text-xs relative text-[10px] transition-all duration-300
+					group-hover:-translate-y-1 group-hover:scale-110 sm:text-sm md:text-base
+					{selectedSquare === `0x${i}` ? 'font-semibold text-blue-700' : 'font-medium text-gray-800'}"
+				>
+					{formatDollar(squareBalances[i])}
+				</span>
+
+				<!-- Square number indicator -->
+				<span
+					class="xs:text-[10px] absolute bottom-1 right-1 font-mono text-[8px] text-gray-400 sm:text-xs"
+				>
+					{i + 1}
+				</span>
+			</button>
+		{/each}
 	</div>
 </div>
+
+<style>
+	button {
+		transform-origin: center;
+		backface-visibility: hidden;
+		-webkit-font-smoothing: subpixel-antialiased;
+	}
+</style>

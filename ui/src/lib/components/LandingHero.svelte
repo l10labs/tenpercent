@@ -27,7 +27,7 @@
 				class:opacity-100={showContent}
 				style="transition-delay: 1500ms"
 			>
-				for Respectable Degens
+				for Sophisticated Degens
 			</span>
 		</div>
 	</h1>

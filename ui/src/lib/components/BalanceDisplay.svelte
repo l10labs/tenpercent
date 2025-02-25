@@ -19,7 +19,7 @@
 		if (controllerStatus.is_connected) {
 			intervalId = setInterval(async () => {
 				await queryPlayerInPit();
-			}, 2000);
+			}, 500);
 
 			// Cleanup function
 			return () => {

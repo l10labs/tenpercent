@@ -18,7 +18,7 @@
 		if (controllerStatus.is_connected) {
 			intervalId = setInterval(async () => {
 				await queryBombTime();
-			}, 2000);
+			}, 500);
 
 			// Cleanup function
 			return () => {

@@ -87,7 +87,7 @@
 				} catch (error) {
 					console.error('Query error:', error);
 				}
-			}, 2000);
+			}, 500);
 
 			// Cleanup function
 			return () => {
