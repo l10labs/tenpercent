@@ -26,15 +26,16 @@
 	};
 	let controller = new Controller(options);
 
-	let isLoading = $state(true);
+	let isControllerConnected = $state(true);
+
 	let controllerUsername: string | undefined = $state('');
 
 	onMount(async () => {
 		if (await controller.probe()) {
 			await connect();
 			controllerUsername = await controller.username();
+			isControllerConnected = false;
 		}
-		isLoading = false;
 	});
 
 	async function connect() {
@@ -44,32 +45,31 @@
 				controllerUsername = await controller.username();
 				console.log(controllerUsername);
 				console.log('controller logged in i think');
+				isControllerConnected = false;
 			}
 		} catch (e) {
 			console.log(e);
 		}
 	}
 
-	async function disconnect() {}
+	async function disconnect() {
+		await controller.disconnect();
+		controllerUsername = undefined;
+		isControllerConnected = true;
+	}
 </script>
 
-{#if isLoading}
-	<button
-		onclick={connect}
-		class="flex items-center gap-2 rounded bg-purple-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-purple-600"
-	>
-		<span>Connect</span>
+{#if isControllerConnected}
+	<button onclick={connect} class="rounded border px-3 py-1 text-sm hover:bg-gray-50">
+		Connect
 	</button>
 {/if}
 
-{#if !isLoading && controllerUsername}
-	<div class="flex items-center gap-4">
-		<p class="text-sm font-medium">{controllerUsername}</p>
-		<button
-			onclick={connect}
-			class="flex items-center gap-2 rounded bg-red-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-600"
-		>
-			<span>Disconnect</span>
+{#if !isControllerConnected && controllerUsername}
+	<div class="flex items-center gap-2">
+		<span class="text-sm">{controllerUsername}</span>
+		<button onclick={disconnect} class="rounded border px-3 py-1 text-sm hover:bg-gray-50">
+			Disconnect
 		</button>
 	</div>
 {/if}
