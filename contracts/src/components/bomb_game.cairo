@@ -152,6 +152,9 @@ pub mod BombGameComponent {
 
             player_pit.square_id = starting_square;
 
+            //place player in the correct round
+            player_pit.current_round = pit.round_number;
+
             // Set all modified models
             store.set_player(player_pit);
             store.set_token(player_tokens);

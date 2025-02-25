@@ -46,6 +46,7 @@ pub mod actions {
 
         fn move(ref self: ContractState, pit_id: u32, square_id: u8) {
             let world = self.world_storage();
+            self.bomb_game.update_reward_or_loss(world, pit_id);
             self.bomb_game.move_to_square(world, pit_id, square_id);
             self.bomb_game.progress_round(world, pit_id);
         }

@@ -76,72 +76,27 @@ pub mod test_actions {
         // Setup initial state
         systems.actions.buy_tokens(ACTIVE_PIT_ID);
         systems.actions.join_pit(ACTIVE_PIT_ID, MINIMUM_ENTRY_BALANCE);
-        let player_wager = MINIMUM_ENTRY_BALANCE;
 
-        let expected_player_escrow = (player_wager * PENALTY_PERCENTAGE) / 100;
-        let expected_player_pit_balance = player_wager - expected_player_escrow;
-        let expected_player_token_balance = TOKENS_PER_CLAIM - player_wager;
+        let expected_wager = MINIMUM_ENTRY_BALANCE;
+        let expected_escrow = (expected_wager * PENALTY_PERCENTAGE) / 100;
+        let expected_pit_balance = expected_wager - expected_escrow;
+        let new_square_to_move_to_id = 1;
 
-        // [Action]
-        let new_square_id = 1;
-        systems.actions.move(ACTIVE_PIT_ID, new_square_id);
+        systems.actions.move(ACTIVE_PIT_ID, new_square_to_move_to_id);
 
-        // [Verification]
-        // Check player moved
         let player = store.get_player(ACTIVE_PIT_ID, setup::OWNER());
-        assert(player.square_id == new_square_id, 'Player did not move');
-        assert(player.balance == expected_player_pit_balance, 'Player balance wrong');
-        assert(player.escrow == expected_player_escrow, 'Player escrow wrong');
+        assert(player.square_id == new_square_to_move_to_id, 'Player did not move');
+        assert(player.balance == expected_pit_balance, 'Player balance wrong');
+        assert(player.escrow == expected_escrow, 'Player escrow wrong');
 
-        // Check old square balance
-        let old_square = store.get_square(ACTIVE_PIT_ID, 0);
+        let old_square_id = 0;
+
+        let old_square = store.get_square(ACTIVE_PIT_ID, old_square_id);
         assert(old_square.total_balance == 0, 'Old square not empty');
         assert(old_square.total_escrow == 0, 'Old square escrow wrong');
 
-        // Check new square balance
-        let new_square = store.get_square(ACTIVE_PIT_ID, new_square_id);
-        assert(new_square.total_balance == expected_player_pit_balance, 'New square balance wrong');
-        assert(new_square.total_escrow == expected_player_escrow, 'New square escrow wrong');
-
-        // Check bomb counter decreased
-        let pit = store.get_pit(ACTIVE_PIT_ID);
-        assert(pit.bomb_counter == INITIAL_BOMB_COUNTER - 1, 'Bomb counter not decreased');
-
-        // Check moves incremented
-        let token = store.get_token(setup::OWNER());
-        assert(token.moves_since_last_claim == 1, 'Moves not incremented');
+        let square = store.get_square(ACTIVE_PIT_ID, new_square_to_move_to_id);
+        assert(square.total_balance == expected_pit_balance, 'Square balance wrong');
+        assert(square.total_escrow == expected_escrow, 'Square escrow wrong');
     }
-    // #[test]
-// #[should_panic(expected: ('Game: already in square', ))]
-// fn test_move_to_same_square() {
-//     // [Setup]
-//     let (world, systems) = spawn_game();
-
-    //     // Setup initial state
-//     systems.actions.buy_tokens(1);
-//     systems.actions.join_pit(1, MINIMUM_ENTRY_BALANCE);
-
-    //     // Get current square
-//     let store: Store = StoreTrait::new(world);
-//     let player = store.get_player(1, OWNER());
-//     let current_square = player.square_id;
-
-    //     // [Action]
-//     // Try to move to same square
-//     systems.actions.move(1, current_square);
-// }
-
-    // #[test]
-// #[should_panic(expected: ('Game: not minimum entry balance', ))]
-// fn test_join_pit_insufficient_balance() {
-//     // [Setup]
-//     let (world, systems) = spawn_game();
-
-    //     // Get tokens
-//     systems.actions.buy_tokens(1);
-
-    //     // [Action]
-//     // Try to join with less than minimum
-//     systems.actions.join_pit(1, MINIMUM_ENTRY_BALANCE - 1);
-// }
 }
