@@ -5,14 +5,38 @@
 	import { controllerStatus } from '$lib/stores/controller_state.svelte';
 	import { apolloClient } from '$lib/stores/apollo';
 	import { USER_TOKEN_QUERY, get_token_balances, match_user_contract_address } from '$lib/queries';
-	import { TOKEN_BASE_DECIMALS } from '$lib/config';
+	import { TOKEN_BASE_DECIMALS, manual_contract_address_from_sozo_inspect } from '$lib/config';
 
 	const rpcUrl = 'https://api.cartridge.gg/x/tenpercentfun/katana';
 	const providerKatanaDev = new RpcProvider({
 		nodeUrl: rpcUrl
 	});
 
-	const policies: SessionPolicies = {};
+	const policies: SessionPolicies = {
+		contracts: {
+			[manual_contract_address_from_sozo_inspect]: {
+				name: 'Ten Percent Fun',
+				description: 'A Game that is Ten Percent Fun for Everyone',
+				methods: [
+					{
+						name: 'Buy Tokens',
+						entrypoint: 'buy_tokens',
+						description: 'Free mock tokens on a movement timer'
+					},
+					{
+						name: 'Join Pit',
+						entrypoint: 'join_pit',
+						description: 'Join the pit and start the game. Once in the pit, theres no going out.'
+					},
+					{
+						name: 'Move Square',
+						entrypoint: 'move_square',
+						description: 'Move your square to a new position.'
+					}
+				]
+			}
+		}
+	};
 
 	let controller: Controller | undefined;
 

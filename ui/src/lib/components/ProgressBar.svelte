@@ -60,7 +60,7 @@
 			></div>
 		</div>
 		<div class="mt-2 text-center text-sm text-gray-600">
-			{progress}% till Ten Percent Time
+			{progress}% till Ten Percent Wave
 		</div>
 	</div>
 </div>
