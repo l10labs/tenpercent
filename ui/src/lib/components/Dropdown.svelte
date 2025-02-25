@@ -25,7 +25,7 @@
 </script>
 
 <div class="relative" bind:this={dropdownRef}>
-	<button on:click={toggleDropdown} class="text-base font-medium hover:text-gray-600">
+	<button onclick={toggleDropdown} class="text-base font-medium hover:text-gray-600">
 		tenpercent.fun
 	</button>
 
@@ -33,12 +33,12 @@
 		<div
 			class="absolute top-full left-0 mt-2 w-56 rounded border border-gray-200 bg-white py-1 shadow-lg"
 		>
-			<a href="/" on:click={closeDropdown} class="block px-4 py-2 text-sm hover:bg-gray-50">Home</a>
-			<a href="/play" on:click={closeDropdown} class="block px-4 py-2 text-sm hover:bg-gray-50"
+			<a href="/" onclick={closeDropdown} class="block px-4 py-2 text-sm hover:bg-gray-50">Home</a>
+			<a href="/play" onclick={closeDropdown} class="block px-4 py-2 text-sm hover:bg-gray-50"
 				>Play</a
 			>
 			<button
-				on:click={closeDropdown}
+				onclick={closeDropdown}
 				class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
 			>
 				Buy Tokens
