@@ -89,3 +89,20 @@ export function match_user_contract_address(token_nodes: TokenNode[], player_con
     let matched_object = token_nodes.filter((token) => token.player === player_contract_address);
     return matched_object[0];
 }
+
+export const PIT_QUERY = gql`
+	query GetPit {
+		dojoStarterPitModels {
+			edges {
+				node {
+					pit_id
+					bomb_counter
+					round_number
+					is_active
+					status
+					modulo_pool
+				}
+			}
+		}
+	}
+`;

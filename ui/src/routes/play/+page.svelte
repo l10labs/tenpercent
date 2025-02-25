@@ -3,6 +3,7 @@
 	import { controllerStatus } from '$lib/stores/controller_state.svelte';
 	import GameControls from '$lib/components/GameControls.svelte';
 	import SquareGrid from '$lib/components/SquareGrid.svelte';
+	import ProgressBar from '$lib/components/ProgressBar.svelte';
 
 	let showGrid = $state(false);
 
@@ -18,6 +19,7 @@
 	<div class="flex flex-col items-center gap-8 pt-24">
 		<GameControls {showGrid} />
 		<SquareGrid {showGrid} />
+		<ProgressBar {showGrid} />
 	</div>
 {:else}
 	<div class="flex h-screen items-center justify-center">
