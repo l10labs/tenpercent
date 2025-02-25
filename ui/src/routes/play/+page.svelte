@@ -4,6 +4,7 @@
 	import GameControls from '$lib/components/GameControls.svelte';
 	import SquareGrid from '$lib/components/SquareGrid.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
+	import BalanceDisplay from '$lib/components/BalanceDisplay.svelte';
 
 	let showGrid = $state(false);
 
@@ -17,9 +18,10 @@
 
 {#if controllerStatus.is_connected}
 	<div class="flex flex-col items-center gap-8 pt-24">
-		<GameControls {showGrid} />
+		<BalanceDisplay {showGrid} />
 		<SquareGrid {showGrid} />
 		<ProgressBar {showGrid} />
+		<GameControls {showGrid} />
 	</div>
 {:else}
 	<div class="flex h-screen items-center justify-center">

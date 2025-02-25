@@ -106,3 +106,20 @@ export const PIT_QUERY = gql`
 		}
 	}
 `;
+
+export const PLAYER_IN_PIT_QUERY = gql`
+	query GetPlayerInPit {
+		dojoStarterPlayerModels {
+			edges {
+				node {
+					pit_id
+					player_id
+					square_id
+					current_round
+					balance
+					escrow
+				}
+			}
+		}
+	}
+`;
