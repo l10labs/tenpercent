@@ -2,7 +2,7 @@
 	import GameGrid from '$lib/components/GameGrid.svelte';
 	import { onMount } from 'svelte';
 
-	let showGrid = false;
+	let showGrid = $state(false);
 
 	onMount(() => {
 		// Small delay to ensure page transition is complete
