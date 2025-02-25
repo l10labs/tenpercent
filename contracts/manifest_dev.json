@@ -1312,8 +1312,8 @@
   },
   "contracts": [
     {
-      "address": "0x22f4ef92153cb19e704aee74890ca955970403754c5d558068ba5700a015afb",
-      "class_hash": "0x2818605195815502a9e3a8b729ac1b73f46049d0453f115e133cc278835eab2",
+      "address": "0xef660ffdd25c054442280efdb20505035219d8be079eff2e8baaed71f28554",
+      "class_hash": "0x78d478420dbb205d599a9d59c4ff0b907cf8cbdfac0c7d2b502b74e71226fb1",
       "abi": [
         {
           "type": "impl",
@@ -1555,7 +1555,7 @@
               "kind": "data"
             },
             {
-              "name": "token_amount",
+              "name": "wager",
               "type": "core::integer::u128",
               "kind": "data"
             }
@@ -1715,19 +1715,19 @@
     },
     {
       "members": [],
-      "class_hash": "0x19e23679ea56d0650571164cc4eae0589025ade4e6aaf47a7b0190b809b9eab",
+      "class_hash": "0x4734579af7769db7d03e961c87fd28dfa83e74e5d6eacd778c2a1d1727091d0",
       "tag": "dojo_starter-Player",
       "selector": "0x1cccb05d982525914bcdce99f0af51556dcb8d9f0e2317c0ad0221d13a809f9"
     },
     {
       "members": [],
-      "class_hash": "0x7200426211a1ba5300848ee55994e652a42b2828232360f8877850f55b20e52",
+      "class_hash": "0x18e6af9c45d5393437bde8ad4ad5b6985f350e0fe2b5f857bd1cf0bf4152b80",
       "tag": "dojo_starter-RoundResult",
       "selector": "0x1a15edba4f1a7c95d8797632aaf75dd5cf93a94fcda2ba8b3fef9214d65b4e0"
     },
     {
       "members": [],
-      "class_hash": "0x48c8c725fc8b12fb50dc34ffdbde45525ff0eacefad32a2789560bf473d2d40",
+      "class_hash": "0x6fafdb33821a58e3c24a2b1ee91a2769e2423111567748774eea8af85c8947b",
       "tag": "dojo_starter-Square",
       "selector": "0x6fec6fd9f31883ff22e6e3d543f3e4c5a23eb42f13be0bfb6a4bffda8e65dbf"
     },
