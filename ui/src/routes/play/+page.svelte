@@ -6,13 +6,16 @@
 	import { SQUARES_QUERY, get_square_balances, log_squares_data } from '$lib/queries';
 
 	let showGrid = $state(false);
+	let squareBalances = $state([0, 0, 0, 0]);
 
-	let s1_balance = $state(0);
-	let s2_balance = $state(0);
-	let s3_balance = $state(0);
-	let s4_balance = $state(0);
+	// Derived states for individual balances
+	let s1_balance = $derived(squareBalances[0]);
+	let s2_balance = $derived(squareBalances[1]);
+	let s3_balance = $derived(squareBalances[2]);
+	let s4_balance = $derived(squareBalances[3]);
 
 	let intervalId: number;
+	let test_counter = 0;
 
 	$effect(() => {
 		// Clear any existing interval when effect reruns
@@ -28,26 +31,8 @@
 						query: SQUARES_QUERY
 					});
 					console.log('Game state update:', result.data);
-					const square_balances = get_square_balances(result);
-					log_squares_data(square_balances);
-
-					// Update the balances when they change
-					square_balances.forEach((balance, index) => {
-						switch (index) {
-							case 0:
-								s1_balance = balance;
-								break;
-							case 1:
-								s2_balance = balance;
-								break;
-							case 2:
-								s3_balance = balance;
-								break;
-							case 3:
-								s4_balance = balance;
-								break;
-						}
-					});
+					const squareNodes = get_square_balances(result);
+					log_squares_data(squareNodes);
 				} catch (error) {
 					console.error('Query error:', error);
 				}
@@ -71,10 +56,17 @@
 </script>
 
 {#if controllerStatus.is_connected}
-	<div class="flex min-h-screen flex-col items-center justify-center p-4">
+	<!-- <div class="flex min-h-screen flex-col items-center justify-center p-4">
 		<div class="w-full">
 			<GameGrid {showGrid} />
 		</div>
+	</div> -->
+
+	<div class="flex min-h-screen flex-col items-center justify-center p-4">
+		<h1>S1: {s1_balance}</h1>
+		<h1>S2: {s2_balance}</h1>
+		<h1>S3: {s3_balance}</h1>
+		<h1>S4: {s4_balance}</h1>
 	</div>
 {:else}
 	<div class="flex h-screen items-center justify-center">
