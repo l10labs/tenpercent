@@ -319,6 +319,12 @@ pub mod BombGameComponent {
                     store.set_square(square);
                     store.set_pit(pit);
                 }
+
+                return;
+            } else if pit.round_number - 1 > player.current_round {
+                // big hax, you don't lose mone if you stall
+                player.current_round = pit.round_number;
+                store.set_player(player);
             }
         }
     }
