@@ -1,36 +1,42 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let visible = false;
-	let showButton = false;
+	let showContent = $state(false);
 
 	onMount(() => {
-		visible = true;
 		setTimeout(() => {
-			showButton = true;
-		}, 4000); // Adjusted for longer animation sequence
+			showContent = true;
+		}, 100);
 	});
 </script>
 
 <div class="flex min-h-[50vh] flex-col items-center justify-center gap-6 px-4 sm:gap-8">
-	<h1
-		class="max-w-[90%] text-center text-xl opacity-0 transition-opacity duration-1000 sm:max-w-[600px] sm:text-2xl md:text-3xl"
-		class:opacity-100={visible}
-	>
-		<div class="flex flex-col items-center">
-			<span class="type-line-1 inline-block overflow-hidden whitespace-nowrap">
+	<h1 class="max-w-[90%] text-center text-xl sm:max-w-[600px] sm:text-2xl md:text-3xl">
+		<div class="flex flex-col items-center gap-2">
+			<span
+				class="scale-0 opacity-0 transition-all duration-1000"
+				class:scale-100={showContent}
+				class:opacity-100={showContent}
+				style="transition-delay: 0ms"
+			>
 				Ten Percent Fun
 			</span>
-			<span class="type-line-2 inline-block overflow-hidden whitespace-nowrap">
-				for the Classy Degens
+			<span
+				class="scale-0 opacity-0 transition-all duration-1000"
+				class:scale-100={showContent}
+				class:opacity-100={showContent}
+				style="transition-delay: 1500ms"
+			>
+				for Respectable Degens
 			</span>
 		</div>
 	</h1>
 	<a
 		href="/play"
-		class="opacity-0 transition-all duration-1000"
-		class:opacity-100={showButton}
-		class:hover:-translate-y-1={showButton}
+		class="scale-0 opacity-0 transition-all duration-1000 hover:-translate-y-1"
+		class:scale-100={showContent}
+		class:opacity-100={showContent}
+		style="transition-delay: 3000ms"
 	>
 		<button class="rounded-md border-2 border-gray-800 px-6 py-2 text-base sm:px-8 sm:text-lg">
 			Play Now

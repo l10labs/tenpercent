@@ -1,12 +1,13 @@
 <script lang="ts">
-	import GameGrid from '$lib/components/GameGrid.svelte';
 	import { onMount } from 'svelte';
 	import { controllerStatus } from '$lib/stores/controller_state.svelte';
 	import { apolloClient } from '$lib/stores/apollo';
 	import { SQUARES_QUERY, get_square_balances, log_squares_data } from '$lib/queries';
+	import GameControls from '$lib/components/GameControls.svelte';
+	import SquareGrid from '$lib/components/SquareGrid.svelte';
 
 	let showGrid = $state(false);
-	let squareBalances = $state([0, 0, 0, 0]);
+	let squareBalances = $state<number[]>([0, 0, 0, 0]);
 
 	// Derived states for individual balances
 	let s1_balance = $derived(squareBalances[0]);
@@ -33,6 +34,12 @@
 					console.log('Game state update:', result.data);
 					const squareNodes = get_square_balances(result);
 					log_squares_data(squareNodes);
+
+					// Convert SquareNode array to number array using total_balance
+					const newBalances = squareNodes.map((node) =>
+						Number(Number(node.total_balance || 0).toFixed(2))
+					);
+					squareBalances = newBalances;
 				} catch (error) {
 					console.error('Query error:', error);
 				}
@@ -56,17 +63,9 @@
 </script>
 
 {#if controllerStatus.is_connected}
-	<!-- <div class="flex min-h-screen flex-col items-center justify-center p-4">
-		<div class="w-full">
-			<GameGrid {showGrid} />
-		</div>
-	</div> -->
-
-	<div class="flex min-h-screen flex-col items-center justify-center p-4">
-		<h1>S1: {s1_balance}</h1>
-		<h1>S2: {s2_balance}</h1>
-		<h1>S3: {s3_balance}</h1>
-		<h1>S4: {s4_balance}</h1>
+	<div class="flex flex-col items-center gap-8 pt-24">
+		<GameControls {showGrid} />
+		<SquareGrid {showGrid} />
 	</div>
 {:else}
 	<div class="flex h-screen items-center justify-center">
